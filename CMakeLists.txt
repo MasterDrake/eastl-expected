@@ -8,7 +8,7 @@
 cmake_minimum_required( VERSION 3.5 FATAL_ERROR )
 
 # expected-lite project and version, updated by script/update-version.py:
-
+include("$ENV{VCPKG_ROOT}\\scripts\\buildsystems\\vcpkg.cmake")
 project(
     expected_lite
     VERSION 0.6.3

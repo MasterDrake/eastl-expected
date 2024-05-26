@@ -41,10 +41,11 @@ set( TARGETS_CPP14 ${BASENAMES_CPP14} )
 set( TARGETS_ALL   ${TARGETS_CPP11} ${TARGETS_CPP14} )
 
 # add targets:
+find_package(EASTL CONFIG REQUIRED)
 
 foreach( name ${TARGETS_ALL} )
     add_executable(        ${name} ${name}.cpp )
-    target_link_libraries( ${name} PRIVATE ${PACKAGE} )
+    target_link_libraries( ${name} PRIVATE ${PACKAGE} EASTL )
 endforeach()
 
 # set compiler options:

@@ -17,6 +17,8 @@ set( PROGRAM   ${unit_name}-lite )
 set( SOURCES   ${unit_name}-main.t.cpp ${unit_name}.t.cpp )
 set( TWEAKD    "." )
 
+find_package(EASTL CONFIG REQUIRED)
+
 message( STATUS "Subproject '${PROJECT_NAME}', programs '${PROGRAM}-*'")
 
 set( OPTIONS "" )
@@ -138,7 +140,7 @@ function( make_target target std )
     add_executable            ( ${target} ${SOURCES} )
     target_include_directories( ${target} SYSTEM  PRIVATE lest )
     target_include_directories( ${target} PRIVATE ${TWEAKD} )
-    target_link_libraries     ( ${target} PRIVATE ${PACKAGE} )
+    target_link_libraries     ( ${target} PRIVATE ${PACKAGE} EASTL)
     target_compile_options    ( ${target} PRIVATE ${OPTIONS} )
     target_compile_definitions( ${target} PRIVATE ${DEFINITIONS} )
 
