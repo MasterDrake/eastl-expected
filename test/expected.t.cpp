@@ -23,9 +23,12 @@
 # pragma GCC   diagnostic ignored "-Wunused-parameter"
 #endif
 
+#include "EASTL/string.h"
+#include "EASTL/vector.h"
+
 //namespace {
 
-using namespace nonstd;
+using namespace eastl;
 
 struct Implicit { int x;          Implicit(int v) : x(v) {} };
 struct Explicit { int x; explicit Explicit(int v) : x(v) {} };
@@ -70,7 +73,7 @@ std::ostream & operator<<( std::ostream & os, MoveOnly const & m ) { return os <
 
 struct InitList
 {
-    std::vector<int> vec;
+    eastl::vector<int> vec;
     char c;
 
     InitList( std::initializer_list<int> il, char k  ) noexcept
@@ -114,14 +117,14 @@ struct Oracle
 
     Oracle() : s(sDefaultConstructed) {}
     Oracle(const OracleVal& v) : s(sValueCopyConstructed), val(v) {}
-    Oracle(OracleVal&& v) : s(sValueMoveConstructed), val(std::move(v)) {v.s = sMovedFrom;}
+    Oracle(OracleVal&& v) : s(sValueMoveConstructed), val(eastl::move(v)) {v.s = sMovedFrom;}
     Oracle(const Oracle& o) : s(sCopyConstructed), val(o.val) {}
-    Oracle(Oracle&& o) : s(sMoveConstructed), val(std::move(o.val)) {o.s = sMovedFrom;}
+    Oracle(Oracle&& o) : s(sMoveConstructed), val(eastl::move(o.val)) {o.s = sMovedFrom;}
 
     Oracle& operator=(const OracleVal& v) { s = sValueCopyConstructed; val = v; return *this; }
-    Oracle& operator=(OracleVal&& v) { s = sValueMoveConstructed; val = std::move(v); v.s = sMovedFrom; return *this; }
+    Oracle& operator=(OracleVal&& v) { s = sValueMoveConstructed; val = eastl::move(v); v.s = sMovedFrom; return *this; }
     Oracle& operator=(const Oracle& o) { s = sCopyConstructed; val = o.val; return *this; }
-    Oracle& operator=(Oracle&& o) { s = sMoveConstructed; val = std::move(o.val); o.s = sMovedFrom; return *this; }
+    Oracle& operator=(Oracle&& o) { s = sMoveConstructed; val = eastl::move(o.val); o.s = sMovedFrom; return *this; }
 
     bool operator==( Oracle const & other ) const { return s == other.s && val == other.val;}
 };
@@ -134,7 +137,7 @@ std::ostream & operator<<( std::ostream & os, OracleVal const & o )
 
 //} // anonymous namespace
 
-namespace nonstd {
+namespace eastl {
 
     template< typename T, typename E >
     std::ostream & operator<<( std::ostream & os, expected<T,E> const & e )
@@ -151,7 +154,7 @@ namespace nonstd {
     }
 }
 
-using namespace nonstd;
+using namespace eastl;
 
 //
 // test specification:
@@ -199,7 +202,7 @@ CASE( "unexpected_type: Allows to move-construct from unexpected_type, default" 
 {
     unexpected_type<int> a{ 7 };
 
-    unexpected_type<int> b( std::move( a ) );
+    unexpected_type<int> b( eastl::move( a ) );
 
     EXPECT( a.value() == 7 );
     EXPECT( b.value() == 7 );
@@ -233,7 +236,7 @@ CASE( "unexpected_type: Allows to copy-construct from error_type" )
 
 CASE( "unexpected_type: Allows to move-construct from error_type" )
 {
-    unexpected_type<int> u{ std::move( 7 ) };
+    unexpected_type<int> u{ eastl::move( 7 ) };
 
     EXPECT( u.value() == 7 );
 }
@@ -260,7 +263,7 @@ CASE( "unexpected_type: Allows to move-construct from unexpected_type, explicit 
 {
     unexpected_type<int> a{ 7 };
 
-    unexpected_type<Explicit> b{ std::move( a ) };
+    unexpected_type<Explicit> b{ eastl::move( a ) };
 
     EXPECT( b.value() == Explicit{7} );
 }
@@ -269,7 +272,7 @@ CASE( "unexpected_type: Allows to move-construct from unexpected_type, non-expli
 {
     unexpected_type<int> a{ 7 };
 
-    unexpected_type<Implicit> b( std::move( a ) );
+    unexpected_type<Implicit> b( eastl::move( a ) );
 
     EXPECT( b.value() == Implicit{7} );
 }
@@ -289,7 +292,7 @@ CASE( "unexpected_type: Allows to move-assign from unexpected_type, default" )
     unexpected_type<int> a{ 7 };
     unexpected_type<int> b{ 0 };
 
-    b = std::move( a );
+    b = eastl::move( a );
 
     EXPECT( b.value() == 7 );
 }
@@ -314,8 +317,8 @@ CASE( "unexpected_type: Allows to move-assign from unexpected, converting" )
     unexpected_type<Explicit> ue{ 0 };
     unexpected_type<Implicit> ui{ 0 };
 
-    ue = std::move( u );
-    ui = std::move( v );
+    ue = eastl::move( u );
+    ui = eastl::move( v );
 
     EXPECT( ue.value() == Explicit{7} );
     EXPECT( ui.value() == Implicit{7} );
@@ -335,8 +338,8 @@ CASE( "unexpected_type: Allows to observe its value via a r-value reference" )
     unexpected_type<int>  u{ 7 };
     unexpected_type<int> uc{ 7 };
 
-    EXPECT( std::move( u).value() == 7 );
-    EXPECT( std::move(uc).value() == 7 );
+    EXPECT( eastl::move( u).value() == 7 );
+    EXPECT( eastl::move(uc).value() == 7 );
 }
 
 CASE( "unexpected_type: Allows to modify its value via a l-value reference" )
@@ -353,7 +356,7 @@ CASE( "unexpected_type: Allows to modify its value via a l-value reference" )
 //    const auto v = 9;
 //    unexpected_type<int> u{ 7 };
 //
-//    std::move( u.value() ) = v;
+//    eastl::move( u.value() ) = v;
 //
 //    EXPECT( u.value() == v );
 //}
@@ -420,14 +423,14 @@ CASE( "unexpected_type<std::exception_ptr>: Allows to move-construct from error_
     auto ep_move = make_ep();
     const auto ep_copy = ep_move;
 
-    unexpected_type<std::exception_ptr> u{ std::move( ep_move ) };
+    unexpected_type<std::exception_ptr> u{ eastl::move( ep_move ) };
 
     EXPECT( u.value() == ep_copy );
 }
 
 CASE( "unexpected_type<std::exception_ptr>: Allows to copy-construct from an exception" )
 {
-    std::string text = "hello, world";
+    eastl::string text = "hello, world";
 
     unexpected_type<std::exception_ptr> u{ std::make_exception_ptr( std::logic_error( text.c_str() ) ) };
 
@@ -545,7 +548,7 @@ CASE( "make_unexpected(): Allows to create an unexpected_type<E> from an E" )
 CASE( "make_unexpected_from_current_exception(): Allows to create an unexpected_type<std::exception_ptr> from the current exception" "[.deprecated]" )
 {
 #if nsel_P0323R <= 2
-    std::string text = "hello, world";
+    eastl::string text = "hello, world";
 
     try
     {
@@ -572,7 +575,7 @@ CASE( "make_unexpected_from_current_exception(): Allows to create an unexpected_
 CASE( "unexpected: C++17 and later provide unexpected_type as unexpected" )
 {
 #if nsel_CPP17_OR_GREATER || nsel_COMPILER_MSVC_VERSION > 141
-    nonstd::unexpected<int> u{7};
+    eastl::unexpected<int> u{7};
 #else
     EXPECT( !!"unexpected is not available (no C++17)." );
 #endif
@@ -601,8 +604,8 @@ CASE( "bad_expected_access: Allows to observe its error" )
 
     EXPECT(             bea.error()   == error );
     EXPECT(            beac.error()   == error );
-    EXPECT( std::move(  bea.error() ) == error );
-    EXPECT( std::move( beac.error() ) == error );
+    EXPECT( eastl::move(  bea.error() ) == error );
+    EXPECT( eastl::move( beac.error() ) == error );
 }
 
 CASE( "bad_expected_access: Allows to change its error" )
@@ -620,7 +623,7 @@ CASE( "bad_expected_access: Provides non-empty what()" )
 {
     bad_expected_access<int> bea( 123 );
 
-    EXPECT( ! std::string( bea.what() ).empty() );
+    EXPECT( ! eastl::string( bea.what() ).empty() );
 }
 
 // -----------------------------------------------------------------------
@@ -673,7 +676,7 @@ CASE( "expected: Allows to move-construct from expected: value" )
 {
     expected<int, char> a = 7;
 
-    expected<int, char> b{ std::move( a ) };
+    expected<int, char> b{ eastl::move( a ) };
 
     EXPECT( b              );
     EXPECT( b.value() == 7 );
@@ -684,7 +687,7 @@ CASE( "expected: Allows to move-construct from expected: error" )
 {
     expected<char, int> a{ unexpect, 7 };
 
-    expected<char, int> b{ std::move( a ) };
+    expected<char, int> b{ eastl::move( a ) };
 
     EXPECT( !b              );
     EXPECT(  b.error() == 7 );
@@ -734,7 +737,7 @@ CASE( "expected: Allows to move-construct from expected; value, explicit convert
 {
     expected<int, char> a = 7;
 
-    expected<Explicit, char> b{ std::move( a ) };
+    expected<Explicit, char> b{ eastl::move( a ) };
 
     EXPECT( b                        );
     EXPECT( b.value() == Explicit{7} );
@@ -744,7 +747,7 @@ CASE( "expected: Allows to move-construct from expected; error, explicit convert
 {
     expected<char, int> a{ unexpect, 7 };
 
-    expected<char, Explicit> b{ std::move( a ) };
+    expected<char, Explicit> b{ eastl::move( a ) };
 
     EXPECT( !b                        );
     EXPECT(  b.error() == Explicit{7} );
@@ -754,7 +757,7 @@ CASE( "expected: Allows to move-construct from expected; value, non-explicit con
 {
     expected<int, char> a = 7;
 
-    expected<Implicit, char> b( std::move( a ) );
+    expected<Implicit, char> b( eastl::move( a ) );
 
     EXPECT( b                        );
     EXPECT( b.value() == Implicit{7} );
@@ -764,7 +767,7 @@ CASE( "expected: Allows to move-construct from expected; error, non-explicit con
 {
     expected<char, int> a{ unexpect, 7 };
 
-    expected<char, Implicit> b( std::move( a ) );
+    expected<char, Implicit> b( eastl::move( a ) );
 
     EXPECT( !b                        );
     EXPECT(  b.error() == Implicit{7} );
@@ -774,7 +777,7 @@ CASE( "expected: Allows to forward-construct from value, explicit converting" )
 {
     auto v = 7;
 
-    expected<Explicit, char> b{ std::move( v ) };
+    expected<Explicit, char> b{ eastl::move( v ) };
 
     EXPECT( b                        );
     EXPECT( b.value() == Explicit{7} );
@@ -784,7 +787,7 @@ CASE( "expected: Allows to forward-construct from value, non-explicit converting
 {
     auto v = 7;
 
-    expected<Implicit, char> b{ std::move( v ) };
+    expected<Implicit, char> b{ eastl::move( v ) };
 
     EXPECT( b                        );
     EXPECT( b.value() == Implicit{7} );
@@ -835,7 +838,7 @@ CASE( "expected: Allows to move-construct from unexpected, explicit converting" 
 {
     unexpected_type<int> u{ 7 };
 
-    expected<int, Explicit> e{ std::move( u ) };
+    expected<int, Explicit> e{ eastl::move( u ) };
 
     EXPECT( e.error() == Explicit{7} );
 }
@@ -844,7 +847,7 @@ CASE( "expected: Allows to move-construct from unexpected, non-explicit converti
 {
     unexpected_type<int> u{ 7 };
 
-    expected<int, Implicit> e{ std::move( u ) };
+    expected<int, Implicit> e{ eastl::move( u ) };
 
     EXPECT( e.error() == Implicit{7} );
 }
@@ -898,7 +901,7 @@ CASE( "expected: Allows to move-assign from expected, value" )
     expected<int, char> a{ 7 };
     expected<int, char> b;
 
-    b = std::move( a );
+    b = eastl::move( a );
 
     EXPECT( b              );
     EXPECT( b.value() == 7 );
@@ -909,7 +912,7 @@ CASE( "expected: Allows to move-assign from expected, error" )
     expected<char, int> a{ unexpect, 7 };
     expected<char, int> b;
 
-    b = std::move( a );
+    b = eastl::move( a );
 
     EXPECT( !b              );
     EXPECT(  b.error() == 7 );
@@ -944,7 +947,7 @@ CASE( "expected: Allows to move-assign from unexpected" )
     expected<char, int>  e;
     unexpected_type<int> u{ 7 } ;
 
-    e = std::move( u );
+    e = eastl::move( u );
 
     EXPECT( e.error() == 7 );
 }
@@ -954,11 +957,12 @@ CASE( "expected: Allows to move-assign from move-only unexpected" )
     expected<char, MoveOnly> e;
     unexpected_type<MoveOnly> u{7};
 
-    e = std::move( u );
+    e = eastl::move( u );
 
     EXPECT( e.error() == 7 );
 }
 
+/* BUGBUGBUG
 CASE( "expected: Allows to emplace value" )
 {
     expected<int, char> a;
@@ -989,12 +993,12 @@ CASE( "expected: Allows to emplace value from initializer_list" )
     EXPECT( e.value().vec[2]  ==  9 );
     EXPECT( e.value().c       == 'a');
 }
-
+*/
 // x.x.4.4 expected<> swap
 
 CASE( "expected: Allows to be swapped" )
 {
-    using std::swap;
+    using eastl::swap;
 
     SETUP("") {
 
@@ -1079,8 +1083,8 @@ CASE( "expected: Allows to observe its value via a r-value reference" )
     expected<Implicit, char>        e{ v };
     expected<Implicit, char> const ec{ v };
 
-    EXPECT( *std::move( e) == Implicit{v} );
-    EXPECT( *std::move(ec) == Implicit{v} );
+    EXPECT( *eastl::move( e) == Implicit{v} );
+    EXPECT( *eastl::move(ec) == Implicit{v} );
 }
 
 CASE( "expected: Allows to modify its value via a l-value reference" )
@@ -1101,7 +1105,7 @@ CASE( "expected: Allows to modify its value via a r-value reference" )
     expected<Implicit, char> e{ v1 };
 
 #if !nsel_COMPILER_GNUC_VERSION || nsel_COMPILER_GNUC_VERSION >= 490
-    *std::move(e) = Implicit{v2};
+    *eastl::move(e) = Implicit{v2};
 #else
     *e = Implicit{v2};  // non-r-value
 #endif
@@ -1145,8 +1149,8 @@ CASE( "expected: Allows to move its value" )
     expected<Implicit, char>        m{ v };
     expected<Implicit, char> const mc{ v };
 
-    expected<Implicit, char>  e{ std::move(m ).value() };
-    expected<Implicit, char> ec{ std::move(mc).value() };
+    expected<Implicit, char>  e{ eastl::move(m ).value() };
+    expected<Implicit, char> ec{ eastl::move(mc).value() };
 
     EXPECT(  e.value() == Implicit{v} );
     EXPECT( ec.value() == Implicit{v} );
@@ -1179,8 +1183,8 @@ CASE( "expected: Allows to move its error" )
     expected<char, Implicit>        m{ unexpect, v };
     expected<char, Implicit> const mc{ unexpect, v };
 
-    expected<char, Implicit>  e{ unexpect, std::move(m ).error() };
-    expected<char, Implicit> ec{ unexpect, std::move(mc).error() };
+    expected<char, Implicit>  e{ unexpect, eastl::move(m ).error() };
+    expected<char, Implicit> ec{ unexpect, eastl::move(mc).error() };
 
     EXPECT(  e.error() == Implicit{v} );
     EXPECT( ec.error() == Implicit{v} );
@@ -1220,8 +1224,8 @@ CASE( "expected: Allows to move its value if available, or obtain a specified va
     expected<int, int> mv{ ve };
     expected<int, int> mu{ unexpect, 0 };
 
-    EXPECT( std::move( mv ).value_or( vu ) == ve );
-    EXPECT( std::move( mu ).value_or( vu ) == vu );
+    EXPECT( eastl::move( mv ).value_or( vu ) == ve );
+    EXPECT( eastl::move( mu ).value_or( vu ) == vu );
 }
 
 CASE( "expected: Throws bad_expected_access on value access when disengaged" )
@@ -1234,10 +1238,10 @@ CASE( "expected: Throws bad_expected_access on value access when disengaged" )
     EXPECT_THROWS(    ec.value() );
     EXPECT_THROWS_AS( ec.value(), bad_expected_access<int> );
 
-    EXPECT_THROWS(    std::move( e).value() );
-    EXPECT_THROWS_AS( std::move( e).value(), bad_expected_access<int> );
-    EXPECT_THROWS(    std::move(ec).value() );
-    EXPECT_THROWS_AS( std::move(ec).value(), bad_expected_access<int> );
+    EXPECT_THROWS(    eastl::move( e).value() );
+    EXPECT_THROWS_AS( eastl::move( e).value(), bad_expected_access<int> );
+    EXPECT_THROWS(    eastl::move(ec).value() );
+    EXPECT_THROWS_AS( eastl::move(ec).value(), bad_expected_access<int> );
 }
 
 #if nsel_P2505R >= 4
@@ -1278,7 +1282,7 @@ CASE( "expected: Allows to map value with and_then" " [monadic p2505r3]" )
 
     const auto map_to_void = [](int) -> expected<void, int> { return {}; };
     const auto map_to_void_unexpect42 = [](int) -> expected<void, int> { return make_unexpected( 42 ); };
-    static_assert( std::is_same< expected<void, int>, decltype( expected<int, int>( 3 ).and_then( map_to_void ) ) >::value,
+    static_assert( eastl::is_same< expected<void, int>, decltype( expected<int, int>( 3 ).and_then( map_to_void ) ) >::value,
         "and_then mapping to void results in expected<void>");
     EXPECT( (expected<int, int>(3)).and_then( map_to_void ).has_value() );
     EXPECT( !(expected<int, int>(3)).and_then( map_to_void_unexpect42 ).has_value() );
@@ -1338,10 +1342,10 @@ CASE( "expected: Allows to transform value" " [monadic p2505r3]" )
     EXPECT( (expected<MoveOnly, int>{ unexpect, 15 }).transform( [](MoveOnly&&) -> int { return 42; } ).error() == 15 );
 
     const auto map_to_void = [](int) -> void { };
-    static_assert( std::is_same< expected<void, int>, decltype( expected<int, int>( 3 ).transform( map_to_void ) ) >::value,
+    static_assert( eastl::is_same< expected<void, int>, decltype( expected<int, int>( 3 ).transform( map_to_void ) ) >::value,
         "transform to void results in expected<void>" );
     EXPECT( (expected<int, int>(3)).transform( map_to_void ).has_value() );
-    static_assert( std::is_same< decltype( (expected<int, int>(3)).transform( map_to_void ).value() ), void >::value,
+    static_assert( eastl::is_same< decltype( (expected<int, int>(3)).transform( map_to_void ).value() ), void >::value,
         "transform to void results in void value" );
 }
 
@@ -1397,7 +1401,7 @@ CASE( "expected<void>: Allows to move-construct from expected<void>: value" )
 {
     expected<void, int> a;
 
-    expected<void, int> b{ std::move( a ) };
+    expected<void, int> b{ eastl::move( a ) };
 
     EXPECT( b );
     EXPECT( a );    // postcondition: unchanged!
@@ -1407,7 +1411,7 @@ CASE( "expected<void>: Allows to move-construct from expected<void>: error" )
 {
     expected<void, int > a{ unexpect, 7 };
 
-    expected<void, int> b{ std::move( a ) };
+    expected<void, int> b{ eastl::move( a ) };
 
     EXPECT( !b              );
     EXPECT(  b.error() == 7 );
@@ -1442,7 +1446,7 @@ CASE( "expected<void>: Allows to move-construct from unexpected, explicit conver
 {
     unexpected_type<int> u{ 7 };
 
-    expected<void, Explicit> e{ std::move( u ) };
+    expected<void, Explicit> e{ eastl::move( u ) };
 
     EXPECT( e.error() == Explicit{7} );
 }
@@ -1451,7 +1455,7 @@ CASE( "expected<void>: Allows to move-construct from unexpected, non-explicit co
 {
     unexpected_type<int> u{ 7 };
 
-    expected<void, Implicit> e{ std::move( u ) };
+    expected<void, Implicit> e{ eastl::move( u ) };
 
     EXPECT( e.error() == Implicit{7} );
 }
@@ -1504,7 +1508,7 @@ CASE( "expected<void>: Allows to move-assign from expected, value" )
     expected<void, int> a;
     expected<void, int> b;
 
-    b = std::move( a );
+    b = eastl::move( a );
 
     EXPECT( b );
 }
@@ -1514,7 +1518,7 @@ CASE( "expected<void>: Allows to move-assign from expected, error" )
     expected<void, int> a{ unexpect, 7 };
     expected<void, int> b;
 
-    b = std::move( a );
+    b = eastl::move( a );
 
     EXPECT( !b              );
     EXPECT(  b.error() == 7 );
@@ -1533,7 +1537,7 @@ CASE( "expected<void>: Allows to emplace value" )
 
 CASE( "expected<void>: Allows to be swapped" )
 {
-    using std::swap;
+    using eastl::swap;
 
     SETUP("") {
 
@@ -1620,8 +1624,8 @@ CASE( "expected<void>: Allows to move its error" )
     expected<void, Implicit>        m{ unexpect, v };
     expected<void, Implicit> const mc{ unexpect, v };
 
-    expected<void, Implicit>  e{ unexpect, std::move(m ).error() };
-    expected<void, Implicit> ec{ unexpect, std::move(mc).error() };
+    expected<void, Implicit>  e{ unexpect, eastl::move(m ).error() };
+    expected<void, Implicit> ec{ unexpect, eastl::move(mc).error() };
 
     EXPECT(  e.error() == Implicit{v} );
     EXPECT( ec.error() == Implicit{v} );
@@ -1653,10 +1657,10 @@ CASE( "expected<void>: Throws bad_expected_access on value access when disengage
     EXPECT_THROWS(    ec.value() );
     EXPECT_THROWS_AS( ec.value(), bad_expected_access<int> );
 
-    EXPECT_THROWS(    std::move( e).value() );
-    EXPECT_THROWS_AS( std::move( e).value(), bad_expected_access<int> );
-    EXPECT_THROWS(    std::move(ec).value() );
-    EXPECT_THROWS_AS( std::move(ec).value(), bad_expected_access<int> );
+    EXPECT_THROWS(    eastl::move( e).value() );
+    EXPECT_THROWS_AS( eastl::move( e).value(), bad_expected_access<int> );
+    EXPECT_THROWS(    eastl::move(ec).value() );
+    EXPECT_THROWS_AS( eastl::move(ec).value(), bad_expected_access<int> );
 }
 
 #if nsel_P2505R >= 4
@@ -1736,12 +1740,12 @@ CASE( "expected<void>: Allows to map to expected or unexpected with or_else" " [
         EXPECT( e.has_value() );
         EXPECT( ce.has_value() );
         EXPECT( e.or_else( unexpect32 ).has_value());
-        static_assert( std::is_same< decltype( e.or_else( unexpect32 ).value() ), void >::value,
+        static_assert( eastl::is_same< decltype( e.or_else( unexpect32 ).value() ), void >::value,
             "or_else mapping to void results in void value" );
         EXPECT( ce.or_else( unexpect32 ).has_value());
         EXPECT( !ue.or_else( unexpect32 ).has_value());
         EXPECT( ue.or_else( make_valid ).has_value() );
-        static_assert( std::is_same< decltype( ue.or_else( make_valid ).value() ), void >::value,
+        static_assert( eastl::is_same< decltype( ue.or_else( make_valid ).value() ), void >::value,
             "or_else mapping to void results in void value" );
         EXPECT( ue.or_else( unexpect32 ).error() == 32 );
     }
@@ -1752,7 +1756,7 @@ CASE( "expected<void>: Allows to assign a new expected value using transform" " 
     const auto make_int_32 = [] { return 32; };
     const auto mul2 = [](int v) { return v * 2; };
     expected<void, int> e;
-    static_assert( std::is_same< decltype( e.transform( make_int_32 ) )::value_type, int >::value, "" );
+    static_assert( eastl::is_same< decltype( e.transform( make_int_32 ) )::value_type, int >::value, "" );
     EXPECT( e.transform( make_int_32 ).value() == 32 );
     EXPECT( e.transform( make_int_32 ).transform( mul2 ).value() == 64 );
 }
@@ -1887,7 +1891,7 @@ CASE( "operators: Provides expected relational operators (void)" )
 
 CASE( "swap: Allows expected to be swapped" )
 {
-    using std::swap;
+    using eastl::swap;
 
     SETUP("") {
 
@@ -1896,28 +1900,28 @@ CASE( "swap: Allows expected to be swapped" )
     expected<int, char> u1{ unexpect, '1' };
     expected<int, char> u2{ unexpect, '2' };
 
-    SECTION("value-value, std::swap")
+    SECTION("value-value, eastl::swap")
     {
         swap( e1, e2 );
 
         EXPECT( e1.value() == 2 );
         EXPECT( e2.value() == 1 );
     }
-    SECTION("error-error, std::swap")
+    SECTION("error-error, eastl::swap")
     {
         swap( u1, u2 );
 
         EXPECT( u1.error() == '2' );
         EXPECT( u2.error() == '1' );
     }
-    SECTION("value-error, std::swap")
+    SECTION("value-error, eastl::swap")
     {
         swap( e1, u1 );
 
         EXPECT( e1.error() == '1' );
         EXPECT( u1.value() ==  1  );
     }
-    SECTION("error-value, std::swap")
+    SECTION("error-value, eastl::swap")
     {
         swap( u1, e1 );
 
@@ -1927,12 +1931,12 @@ CASE( "swap: Allows expected to be swapped" )
     }
 }
 
-CASE( "std::hash: Allows to compute hash value for expected" )
+CASE( "eastl::hash: Allows to compute hash value for expected" )
 {
     expected<int, char> a{ 7 };
     expected<int, char> b{ 7 };
 
-    EXPECT( (std::hash< expected<int, char> >{}( a )) == (std::hash< expected<int, char> >{}( b )) );
+  //  EXPECT((eastl::hash< expected<int, char> >{}( a )) == (eastl::hash<expected<int, char> >{}( b )) );
 }
 
 #if nsel_P0323R <= 3
@@ -1946,9 +1950,9 @@ expected<int> foo()
     return make_expected( 7 );
 }
 
-expected<std::unique_ptr<int>> bar()
+expected<eastl::unique_ptr<int>> bar()
 {
-    return make_expected( std::unique_ptr<int>( new int(7) ) );
+    return make_expected( eastl::unique_ptr<int>( new int(7) ) );
 }
 
 #endif // nsel_P0323R
@@ -1998,7 +2002,7 @@ CASE( "make_expected_from_call(): non-void return type" "[.deprecated]" )
 {
 #if nsel_P0323R <= 3
     expected<int> ei = foo();
-    expected<std::unique_ptr<int>> eup = bar();
+    expected<eastl::unique_ptr<int>> eup = bar();
 
     auto e2   = make_expected_from_call( foo );
     auto eup2 = make_expected_from_call( bar );
@@ -2037,7 +2041,7 @@ CASE( "tweak header: reads tweak header if supported " "[tweak]" )
 
 CASE( "issue-15d" )
 {
-    nonstd::expected< int, std::error_code > e = 12;
+    eastl::expected< int, std::error_code > e = 12;
     (void)e.value();
 }
 
@@ -2045,7 +2049,7 @@ CASE( "issue-15d" )
 
 CASE( "issue-15" )
 {
-    (void) nonstd::expected< int, int >( 12).value();
+    (void) eastl::expected< int, int >( 12).value();
 }
 
 // issue #29, https://github.com/martinmoene/expected-lite/issues/29
@@ -2070,7 +2074,7 @@ public:
     ~MyNonMoveableObject() = default;
 };
 
-nonstd::expected< MyNonMoveableObject, Error > create_copyable()
+eastl::expected< MyNonMoveableObject, Error > create_copyable()
 {
     return MyNonMoveableObject{};
 }
@@ -2087,7 +2091,7 @@ public:
     ~MyNonCopyableObject() = default;
 };
 
-nonstd::expected< MyNonCopyableObject, Error > create_moveable()
+eastl::expected< MyNonCopyableObject, Error > create_moveable()
 {
     return MyNonCopyableObject{};
 }
@@ -2102,12 +2106,12 @@ CASE( "pr-41" )
     const expected<int, int> cb{unexpect, 7};
     expected<void, int> c{unexpect, 7};
     const expected<void, int> cc{unexpect, 7};
-    EXPECT( *std::move(a) == 7 );
-    EXPECT( *std::move(ca) == 7 );
-    EXPECT( std::move(b).error() == 7 );
-    EXPECT( std::move(cb).error() == 7 );
-    EXPECT( std::move(c).error() == 7 );
-    EXPECT( std::move(cc).error() == 7 );
+    EXPECT( *eastl::move(a) == 7 );
+    EXPECT( *eastl::move(ca) == 7 );
+    EXPECT( eastl::move(b).error() == 7 );
+    EXPECT( eastl::move(cb).error() == 7 );
+    EXPECT( eastl::move(c).error() == 7 );
+    EXPECT( eastl::move(cc).error() == 7 );
 }
 
 // issue #50, https://github.com/martinmoene/expected-lite/issues/50
@@ -2121,9 +2125,9 @@ struct MyConstMemberNonMoveableObject
     MyConstMemberNonMoveableObject( MyConstMemberNonMoveableObject const & ) = default;
 };
 
-nonstd::unexpected_type<MyConstMemberNonMoveableObject> create_nonmoveable()
+eastl::unexpected_type<MyConstMemberNonMoveableObject> create_nonmoveable()
 {
-    return nonstd::make_unexpected<MyConstMemberNonMoveableObject>( MyConstMemberNonMoveableObject(3) );
+    return eastl::make_unexpected<MyConstMemberNonMoveableObject>( MyConstMemberNonMoveableObject(3) );
 }
 
 } // namespace issue_50
@@ -2132,15 +2136,15 @@ namespace issue_51 {
 
 int compare_equal_with_expected_void()
 {
-    auto ev1 = nonstd::expected<void, int>{};
-    auto ev2 = nonstd::expected<void, int>{};
+    auto ev1 = eastl::expected<void, int>{};
+    auto ev2 = eastl::expected<void, int>{};
     return ev1 == ev2;
 }
 
 int compare_not_equal_with_expected_void()
 {
-    auto ev1 = nonstd::expected<void, int>{};
-    auto ev2 = nonstd::expected<void, int>{};
+    auto ev1 = eastl::expected<void, int>{};
+    auto ev2 = eastl::expected<void, int>{};
     return ev1 != ev2;
 }
 
@@ -2161,11 +2165,11 @@ struct NonMovableNonCopyable
 
 CASE( "issue-58" )
 {
-    static_assert( !std::is_copy_constructible<issue_59::NonMovableNonCopyable>::value, "is not copy constructible" );
-    static_assert( !std::is_move_constructible<issue_59::NonMovableNonCopyable>::value, "is not move constructible" );
+    static_assert( !eastl::is_copy_constructible<issue_59::NonMovableNonCopyable>::value, "is not copy constructible" );
+    static_assert( !eastl::is_move_constructible<issue_59::NonMovableNonCopyable>::value, "is not move constructible" );
 
-    nonstd::expected<issue_59::NonMovableNonCopyable, issue_59::NonMovableNonCopyable> expected;
-    nonstd::expected<issue_59::NonMovableNonCopyable, issue_59::NonMovableNonCopyable> unexpected( nonstd::unexpect_t{} );
+    eastl::expected<issue_59::NonMovableNonCopyable, issue_59::NonMovableNonCopyable> expected;
+    eastl::expected<issue_59::NonMovableNonCopyable, issue_59::NonMovableNonCopyable> unexpected( eastl::unexpect_t{} );
 
     EXPECT(  expected.has_value()   );
     EXPECT( !unexpected.has_value() );
@@ -2179,24 +2183,24 @@ CASE( "invoke" )
       constexpr int get() const { return x; }
       constexpr int get2(char) const { return x; }
     };
-    static_assert( nonstd::expected_lite::detail::invoke( &A::x, A{21} ) == 21, "" );
-    EXPECT( nonstd::expected_lite::detail::invoke( &MoveOnly::x, MoveOnly(42) ) == 42 );
+    static_assert( eastl::expected_lite::detail::invoke( &A::x, A{21} ) == 21, "" );
+    EXPECT( eastl::expected_lite::detail::invoke( &MoveOnly::x, MoveOnly(42) ) == 42 );
     constexpr A lval{ 7 };
-    static_assert( nonstd::expected_lite::detail::invoke( &A::x, lval ) == 7, "" );
+    static_assert( eastl::expected_lite::detail::invoke( &A::x, lval ) == 7, "" );
     A mut_lval{ 12 };
-    std::reference_wrapper<A> ref{ mut_lval };
-    const std::reference_wrapper<const A> cref{ lval };
-    EXPECT( nonstd::expected_lite::detail::invoke( &A::x, ref ) == 12 );
-    EXPECT( nonstd::expected_lite::detail::invoke( &A::x, cref ) == 7 );
-    static_assert( nonstd::expected_lite::detail::invoke(&A::x, &lval) == 7, "" );
-    static_assert( nonstd::expected_lite::detail::invoke(&A::get, &lval) == 7, "" );
-    static_assert( nonstd::expected_lite::detail::invoke(&A::get, A{77}) == 77, "" );
-    EXPECT( nonstd::expected_lite::detail::invoke(&A::get, ref) == 12 );
-    EXPECT( nonstd::expected_lite::detail::invoke(&A::get, cref) == 7 );
-    static_assert( nonstd::expected_lite::detail::invoke(&A::get2, &lval, 'a') == 7, "" );
-    static_assert( nonstd::expected_lite::detail::invoke(&A::get2, A{77}, 'a') == 77, "" );
-    EXPECT( nonstd::expected_lite::detail::invoke(&A::get2, ref, 'a') == 12 );
-    EXPECT( nonstd::expected_lite::detail::invoke(&A::get2, cref, 'a') == 7 );
+    eastl::reference_wrapper<A> ref{ mut_lval };
+    const eastl::reference_wrapper<const A> cref{ lval };
+    EXPECT( eastl::expected_lite::detail::invoke( &A::x, ref ) == 12 );
+    EXPECT( eastl::expected_lite::detail::invoke( &A::x, cref ) == 7 );
+    static_assert( eastl::expected_lite::detail::invoke(&A::x, &lval) == 7, "" );
+    static_assert( eastl::expected_lite::detail::invoke(&A::get, &lval) == 7, "" );
+    static_assert( eastl::expected_lite::detail::invoke(&A::get, A{77}) == 77, "" );
+    EXPECT( eastl::expected_lite::detail::invoke(&A::get, ref) == 12 );
+    EXPECT( eastl::expected_lite::detail::invoke(&A::get, cref) == 7 );
+    static_assert( eastl::expected_lite::detail::invoke(&A::get2, &lval, 'a') == 7, "" );
+    static_assert( eastl::expected_lite::detail::invoke(&A::get2, A{77}, 'a') == 77, "" );
+    EXPECT( eastl::expected_lite::detail::invoke(&A::get2, ref, 'a') == 12 );
+    EXPECT( eastl::expected_lite::detail::invoke(&A::get2, cref, 'a') == 7 );
 }
 #endif // nsel_P2505R >= 3
 

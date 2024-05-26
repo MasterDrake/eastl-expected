@@ -3,7 +3,7 @@
 #include "nonstd/expected.hpp"
 #include <iostream>
 
-using namespace nonstd;
+using namespace eastl;
 
 template< typename T >
 class required
@@ -37,14 +37,14 @@ private:
 template< typename T >
 auto make_required( T value ) -> required<T>
 {
-    return required<T>( std::move(value) );
+    return required<T>(eastl::move(value) );
 }
 
 using unused_type = char;
 
 auto produce( int value ) -> expected< required<int>, unused_type >
 {
-    return make_required( std::move(value) );
+    return make_required(eastl::move(value) );
 }
 
 int main( int argc, char * argv[] )

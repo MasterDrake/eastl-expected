@@ -23,10 +23,10 @@
 namespace lest {
 
 template< typename T, typename E >
-std::ostream & operator<<( std::ostream & os, nonstd::expected<T,E> const & );
+std::ostream & operator<<( std::ostream & os, eastl::expected<T,E> const & );
 
 template< typename E >
-std::ostream & operator<<( std::ostream & os, nonstd::expected<void,E> const & );
+std::ostream & operator<<( std::ostream & os, eastl::expected<void,E> const & );
 } // namespace lest
 
 // Compiler warning suppression for usage of lest:
@@ -54,14 +54,14 @@ namespace lest {
 // see  http://stackoverflow.com/a/10651752/437272
 
 template< typename T, typename E >
-inline std::ostream & operator<<( std::ostream & os, nonstd::expected<T,E> const & v )
+inline std::ostream & operator<<( std::ostream & os, eastl::expected<T,E> const & v )
 {
     using lest::to_string;
     return os << "[expected:" << (v ? to_string(*v) : "[empty]") << "]";
 }
 
 template< typename E >
-inline std::ostream & operator<<( std::ostream & os, nonstd::expected<void,E> const & v )
+inline std::ostream & operator<<( std::ostream & os, eastl::expected<void,E> const & v )
 {
     using lest::to_string;
     return os << "[expected<void>:" << (v ? "[non-empty]" : "[empty]") << "]";

@@ -7,6 +7,17 @@
 
 #include "expected-main.t.hpp"
 
+void* __cdecl operator new[](size_t size, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+    {
+        return new uint8_t[size];
+    }
+
+void* __cdecl operator new[](size_t size, size_t alignment, size_t alignmentOffset, const char* name, int flags, unsigned debugFlags, const char* file, int line)
+    {
+        return new uint8_t[size];
+    }
+
+
 #define expected_PRESENT( x ) \
     std::cout << #x << ": " << x << "\n"
 
@@ -37,12 +48,6 @@ CASE( "expected-lite version" "[.expected][.version]" )
 
 CASE( "any configuration" "[.expected][.config]" )
 {
-    expected_PRESENT( nsel_HAVE_STD_EXPECTED );
-    expected_PRESENT( nsel_USES_STD_EXPECTED );
-    expected_PRESENT( nsel_EXPECTED_DEFAULT );
-    expected_PRESENT( nsel_EXPECTED_NONSTD );
-    expected_PRESENT( nsel_EXPECTED_STD );
-    expected_PRESENT( nsel_CONFIG_SELECT_EXPECTED );
     expected_PRESENT( nsel_CONFIG_NO_EXCEPTIONS );
     expected_PRESENT( nsel_CPLUSPLUS );
 }
