@@ -48,7 +48,6 @@ CASE( "expected-lite version" "[.expected][.version]" )
 
 CASE( "any configuration" "[.expected][.config]" )
 {
-    expected_PRESENT( nsel_CONFIG_NO_EXCEPTIONS );
     expected_PRESENT( nsel_CPLUSPLUS );
 }
 

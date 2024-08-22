@@ -210,8 +210,8 @@ CASE( "unexpected_type: Allows to move-construct from unexpected_type, default" 
 
 CASE( "unexpected_type: Allows to in-place-construct" )
 {
-    unexpected_type<Explicit> ue( in_place, 5 );
-    unexpected_type<Implicit> ui( in_place, 7 );
+    unexpected_type<Explicit> ue( eastl::in_place, 5 );
+    unexpected_type<Implicit> ui( eastl::in_place, 7 );
 
     EXPECT( ue.value() == Explicit{5} );
     EXPECT( ui.value() == Implicit{7} );
