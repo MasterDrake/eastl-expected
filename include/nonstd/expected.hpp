@@ -13,8 +13,8 @@
 #define NONSTD_EXPECTED_LITE_HPP
 
 #define expected_lite_MAJOR  0
-#define expected_lite_MINOR  6
-#define expected_lite_PATCH  3
+#define expected_lite_MINOR  8
+#define expected_lite_PATCH  0
 
 #define expected_lite_VERSION  expected_STRINGIFY(expected_lite_MAJOR) "." expected_STRINGIFY(expected_lite_MINOR) "." expected_STRINGIFY(expected_lite_PATCH)
 
@@ -170,16 +170,6 @@ namespace eastl
 #define nsel_REQUIRES_A(...) \
     , typename eastl::enable_if< (__VA_ARGS__), void*>::type = nullptr
 
-// Presence of language and library features:
-
-#ifdef _HAS_CPP0X
-# define nsel_HAS_CPP0X  _HAS_CPP0X
-#else
-# define nsel_HAS_CPP0X  0
-#endif
-
-//#define nsel_CPP11_140  (nsel_CPP11_OR_GREATER || nsel_COMPILER_MSVC_VER >= 1900)
-
 // Clang, GNUC, MSVC warning suppression macros:
 
 #ifdef __clang__
@@ -189,26 +179,53 @@ namespace eastl
 #endif // __clang__
 
 #if nsel_COMPILER_MSVC_VERSION >= 140
-# pragma warning( push )
-# define nsel_DISABLE_MSVC_WARNINGS(codes)  __pragma( warning(disable: codes) )
+# define nsel_DISABLE_MSVC_WARNINGS(codes)  __pragma( warning(push) )  __pragma( warning(disable: codes) )
 #else
 # define nsel_DISABLE_MSVC_WARNINGS(codes)
 #endif
 
 #ifdef __clang__
-# define nsel_RESTORE_WARNINGS()  _Pragma("clang diagnostic pop")
+# define nsel_RESTORE_WARNINGS()        _Pragma("clang diagnostic pop")
+# define nsel_RESTORE_MSVC_WARNINGS()
 #elif defined __GNUC__
-# define nsel_RESTORE_WARNINGS()  _Pragma("GCC diagnostic pop")
+# define nsel_RESTORE_WARNINGS()        _Pragma("GCC diagnostic pop")
+# define nsel_RESTORE_MSVC_WARNINGS()
 #elif nsel_COMPILER_MSVC_VERSION >= 140
-# define nsel_RESTORE_WARNINGS()  __pragma( warning( pop ) )
+# define nsel_RESTORE_WARNINGS()        __pragma( warning( pop ) )
+# define nsel_RESTORE_MSVC_WARNINGS()   nsel_RESTORE_WARNINGS()
 #else
 # define nsel_RESTORE_WARNINGS()
+# define nsel_RESTORE_MSVC_WARNINGS()
 #endif
 
 // Suppress the following MSVC (GSL) warnings:
 // - C26409: Avoid calling new and delete explicitly, use std::make_unique<T> instead (r.11)
 
 nsel_DISABLE_MSVC_WARNINGS( 26409 )
+
+// Presence of language and library features:
+
+#ifdef _HAS_CPP0X
+# define nsel_HAS_CPP0X  _HAS_CPP0X
+#else
+# define nsel_HAS_CPP0X  0
+#endif
+
+// Presence of language and library features:
+
+#define nsel_CPP17_000  (nsel_CPP17_OR_GREATER)
+
+// Presence of C++17 language features:
+
+#define nsel_HAVE_DEPRECATED  nsel_CPP17_000
+
+// C++ feature usage:
+
+#if nsel_HAVE_DEPRECATED
+# define nsel_deprecated(msg) [[deprecated(msg)]]
+#else
+# define nsel_deprecated(msg) /*[[deprecated]]*/
+#endif
 
 //
 // expected:
@@ -989,7 +1006,7 @@ public:
         )
     >
     constexpr explicit unexpected_type( unexpected_type<E2> const & error )
-    : m_error( E{ error.value() } )
+    : m_error( E{ error.error() } )
     {}
 
     template< typename E2
@@ -1007,7 +1024,7 @@ public:
         )
     >
     constexpr /*non-explicit*/ unexpected_type( unexpected_type<E2> const & error )
-    : m_error( error.value() )
+    : m_error( error.error() )
     {}
 
     template< typename E2
@@ -1025,7 +1042,7 @@ public:
         )
     >
     constexpr explicit unexpected_type( unexpected_type<E2> && error )
-    : m_error( E{ eastl::move( error.value() ) } )
+    : m_error( E{ std::move( error.error() ) } )
     {}
 
     template< typename E2
@@ -1043,7 +1060,7 @@ public:
         )
     >
     constexpr /*non-explicit*/ unexpected_type( unexpected_type<E2> && error )
-    : m_error(eastl::move( error.value() ) )
+    : m_error( std::move( error.error() ) )
     {}
 
     // x.x.5.2.2 Assignment
@@ -1054,23 +1071,53 @@ public:
     template< typename E2 = E >
     EA_CPP14_CONSTEXPR unexpected_type & operator=( unexpected_type<E2> const & other )
     {
-        unexpected_type{ other.value() }.swap( *this );
+        unexpected_type{ other.error() }.swap( *this );
         return *this;
     }
 
     template< typename E2 = E >
     EA_CPP14_CONSTEXPR unexpected_type & operator=( unexpected_type<E2> && other )
     {
-        unexpected_type{ eastl::move( other.value() ) }.swap( *this );
+        unexpected_type{ std::move( other.error() ) }.swap( *this );
         return *this;
     }
 
     // x.x.5.2.3 Observers
 
-    EA_CPP14_CONSTEXPR E & value() & noexcept
+    nsel_constexpr14 E & error() & noexcept
     {
         return m_error;
     }
+
+    constexpr E const & error() const & noexcept
+    {
+        return m_error;
+    }
+
+#if !nsel_COMPILER_GNUC_VERSION || nsel_COMPILER_GNUC_VERSION >= 490
+
+    nsel_constexpr14 E && error() && noexcept
+    {
+        return std::move( m_error );
+    }
+
+    constexpr E const && error() const && noexcept
+    {
+        return std::move( m_error );
+    }
+
+#endif
+
+    // x.x.5.2.3 Observers - deprecated
+
+    nsel_deprecated("replace value() with error()")
+
+    nsel_constexpr14 E & value() & noexcept
+    {
+        return m_error;
+    }
+
+    nsel_deprecated("replace value() with error()")
 
     constexpr E const & value() const & noexcept
     {
@@ -1079,10 +1126,14 @@ public:
 
 #if !nsel_COMPILER_GNUC_VERSION || nsel_COMPILER_GNUC_VERSION >= 490
 
-    EA_CPP14_CONSTEXPR E && value() && noexcept
+    nsel_deprecated("replace value() with error()")
+
+    nsel_constexpr14 E && value() && noexcept
     {
         return eastl::move( m_error );
     }
+
+    nsel_deprecated("replace value() with error()")
 
     constexpr E const && value() const && noexcept
     {
@@ -1125,7 +1176,7 @@ unexpected_type( E ) -> unexpected_type< E >;
 template< typename E1, typename E2 >
 constexpr bool operator==( unexpected_type<E1> const & x, unexpected_type<E2> const & y )
 {
-    return x.value() == y.value();
+    return x.error() == y.error();
 }
 
 template< typename E1, typename E2 >
@@ -1139,7 +1190,7 @@ constexpr bool operator!=( unexpected_type<E1> const & x, unexpected_type<E2> co
 template< typename E >
 constexpr bool operator<( unexpected_type<E> const & x, unexpected_type<E> const & y )
 {
-    return x.value() < y.value();
+    return x.error() < y.error();
 }
 
 template< typename E >
@@ -1221,6 +1272,19 @@ EA_CPP14_CONSTEXPR auto
 make_unexpected( E && value ) -> unexpected_type< typename eastl::decay<E>::type >
 {
     return unexpected_type< typename eastl::decay<E>::type >(eastl::forward<E>(value) );
+}
+
+template
+<
+    typename E, typename... Args,
+    typename = std::enable_if<
+        std::is_constructible<E, Args...>::value
+    >
+>
+nsel_constexpr14 auto
+make_unexpected( nonstd_lite_in_place_t(E), Args &&... args ) -> unexpected_type< typename std::decay<E>::type >
+{
+    return std::move( unexpected_type< typename std::decay<E>::type >( nonstd_lite_in_place(E), std::forward<Args>(args)...) );
 }
 
 #if nsel_P0323R <= 3
@@ -1548,7 +1612,7 @@ public:
     EA_CPP14_CONSTEXPR explicit expected( eastl::unexpected_type<G> const & error )
     : contained( false )
     {
-        contained.construct_error( E{ error.value() } );
+        contained.construct_error( E{ error.error() } );
     }
 
     template< typename G = E
@@ -1560,7 +1624,7 @@ public:
     EA_CPP14_CONSTEXPR /*non-explicit*/ expected( eastl::unexpected_type<G> const & error )
     : contained( false )
     {
-        contained.construct_error( error.value() );
+        contained.construct_error( error.error() );
     }
 
     template< typename G = E
@@ -1572,7 +1636,7 @@ public:
     EA_CPP14_CONSTEXPR explicit expected( eastl::unexpected_type<G> && error )
     : contained( false )
     {
-        contained.construct_error( E{ eastl::move( error.value() ) } );
+        contained.construct_error( E{ std::move( error.error() ) } );
     }
 
     template< typename G = E
@@ -1584,7 +1648,7 @@ public:
     EA_CPP14_CONSTEXPR /*non-explicit*/ expected( eastl::unexpected_type<G> && error )
     : contained( false )
     {
-        contained.construct_error(eastl::move( error.value() ) );
+        contained.construct_error( std::move( error.error() ) );
     }
 
     // in-place construction, value
@@ -1689,7 +1753,7 @@ public:
     >
     expected & operator=( eastl::unexpected_type<G> const & error )
     {
-        expected( unexpect, error.value() ).swap( *this );
+        expected( unexpect, error.error() ).swap( *this );
         return *this;
     }
 
@@ -1702,7 +1766,7 @@ public:
     >
     expected & operator=( eastl::unexpected_type<G> && error )
     {
-        expected( unexpect, eastl::move( error.value() ) ).swap( *this );
+        expected( unexpect, std::move( error.error() ) ).swap( *this );
         return *this;
     }
 
@@ -1805,6 +1869,8 @@ public:
         return contained.has_value();
     }
 
+    nsel_DISABLE_MSVC_WARNINGS( 4702 )  // warning C4702: unreachable code, see issue 65.
+
     constexpr value_type const & value() const &
     {
         return has_value()
@@ -1818,6 +1884,7 @@ public:
             ? ( contained.value() )
             : ( error_traits<error_type>::rethrow( contained.error() ), contained.value() );
     }
+    nsel_RESTORE_MSVC_WARNINGS()
 
 #if !nsel_COMPILER_GNUC_VERSION || nsel_COMPILER_GNUC_VERSION >= 490
 
@@ -2254,7 +2321,7 @@ private:
 /// class expected, void specialization
 
 template< typename E >
-class expected<void, E>
+class expected< void, E >
 {
 private:
     template< typename, typename > friend class expected;
@@ -2285,7 +2352,7 @@ public:
     EA_CPP14_CONSTEXPR explicit expected( eastl::unexpected_type<G> const & error )
         : contained( false )
     {
-        contained.construct_error( E{ error.value() } );
+        contained.construct_error( E{ error.error() } );
     }
 
     template< typename G = E
@@ -2296,7 +2363,7 @@ public:
     EA_CPP14_CONSTEXPR /*non-explicit*/ expected( eastl::unexpected_type<G> const & error )
         : contained( false )
     {
-        contained.construct_error( error.value() );
+        contained.construct_error( error.error() );
     }
 
     template< typename G = E
@@ -2307,7 +2374,7 @@ public:
     EA_CPP14_CONSTEXPR explicit expected(eastl::unexpected_type<G> && error )
         : contained( false )
     {
-        contained.construct_error( E{ eastl::move( error.value() ) } );
+        contained.construct_error( E{ std::move( error.error() ) } );
     }
 
     template< typename G = E
@@ -2318,7 +2385,7 @@ public:
     EA_CPP14_CONSTEXPR /*non-explicit*/ expected(eastl::unexpected_type<G> && error )
         : contained( false )
     {
-        contained.construct_error(eastl::move( error.value() ) );
+        contained.construct_error( std::move( error.error() ) );
     }
 
     template< typename... Args

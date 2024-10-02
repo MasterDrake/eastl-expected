@@ -1,6 +1,6 @@
 # expected lite: expected objects for C++11 and later
 
-[![Language](https://img.shields.io/badge/C%2B%2B-11-blue.svg)](https://en.wikipedia.org/wiki/C%2B%2B#Standardization) [![License](https://img.shields.io/badge/license-BSL-blue.svg)](https://opensource.org/licenses/BSL-1.0) [![Build Status](https://github.com/martinmoene/expected-lite/actions/workflows/ci.yml/badge.svg)](https://github.com/martinmoene/expected-lite/actions/workflows/ci.yml) [![Build status](https://ci.appveyor.com/api/projects/status/sle31w7obrm8lhe1?svg=true)](https://ci.appveyor.com/project/martinmoene/expected-lite) [![Version](https://badge.fury.io/gh/martinmoene%2Fexpected-lite.svg)](https://github.com/martinmoene/expected-lite/releases) [![download](https://img.shields.io/badge/latest-download-blue.svg)](https://raw.githubusercontent.com/martinmoene/expected-lite/master/include/nonstd/expected.hpp) [![Conan](https://img.shields.io/badge/on-conan-blue.svg)](https://conan.io/center/expected-lite) [![Try it online](https://img.shields.io/badge/on-wandbox-blue.svg)](https://wandbox.org/permlink/MnnwqOtE8ZQ4rRsv) [![Try it on godbolt online](https://img.shields.io/badge/on-godbolt-blue.svg)](https://godbolt.org/z/9BuMZx)
+[![Language](https://img.shields.io/badge/C%2B%2B-11-blue.svg)](https://en.wikipedia.org/wiki/C%2B%2B#Standardization) [![License](https://img.shields.io/badge/license-BSL-blue.svg)](https://opensource.org/licenses/BSL-1.0) [![Build Status](https://github.com/martinmoene/expected-lite/actions/workflows/ci.yml/badge.svg)](https://github.com/martinmoene/expected-lite/actions/workflows/ci.yml) [![Build status](https://ci.appveyor.com/api/projects/status/sle31w7obrm8lhe1?svg=true)](https://ci.appveyor.com/project/martinmoene/expected-lite) [![Version](https://badge.fury.io/gh/martinmoene%2Fexpected-lite.svg)](https://github.com/martinmoene/expected-lite/releases) [![download](https://img.shields.io/badge/latest-download-blue.svg)](https://raw.githubusercontent.com/martinmoene/expected-lite/master/include/nonstd/expected.hpp) [![Conan](https://img.shields.io/badge/on-conan-blue.svg)](https://conan.io/center/expected-lite) [![Vcpkg](https://img.shields.io/badge/on-vcpkg-blue.svg)](https://vcpkg.link/ports/expected-lite) [![Try it online](https://img.shields.io/badge/on-wandbox-blue.svg)](https://wandbox.org/permlink/MnnwqOtE8ZQ4rRsv) [![Try it on godbolt online](https://img.shields.io/badge/on-godbolt-blue.svg)](https://godbolt.org/z/9BuMZx)
 
 *expected lite* is a single-file header-only library for objects that either represent a valid value or an error that you can pass by value. It is intended for use with C++11 and later. The library is based on the [std:&#58;expected](http://wg21.link/p0323) proposal [1] .
 
@@ -112,7 +112,12 @@ At default, *expected lite* uses `std::expected` if it is available and lets you
 Define this to `nsel_EXPECTED_STD` to select `std::expected` as `nonstd::expected`. Define this to `nsel_EXPECTED_NONSTD` to select `nonstd::expected` as `nonstd::expected`. Default is undefined, which has the same effect as defining to `nsel_EXPECTED_DEFAULT`.
 
 -D<b>nsel\_P0323R</b>=7  *(default)*  
-Define this to the proposal revision number to control the presence and behavior of features (see tables). Default is 7 for the latest revision.   
+Define this to the proposal revision number to control the presence and behavior of features (see tables). Default is 7 for the latest revision.
+
+#### Define `WIN32_LEAN_AND_MEAN`
+
+-D<b>nsel\_CONFIG\_WIN32\_LEAN\_AND\_MEAN</b>=1  
+Define this to 0 if you want to omit automatic definition of `WIN32_LEAN_AND_MEAN`. Default is 1 when `_MSC_VER` is present.
 
 #### Disable C++ exceptions
 
@@ -254,8 +259,10 @@ You can use the R3 revision of P2505, which lacks `error_or`, and uses `remove_c
 | Construction | **unexpected_type**() = delete;                           | no default construction |
 | &nbsp;       | constexpr explicit **unexpected_type**( E const & error ) | copy-constructed from an E |
 | &nbsp;       | constexpr explicit **unexpected_type**( E && error )      | move-constructed from an E |
-| Observers    | constexpr error_type const & **value**() const            | can observe contained error |
-| &nbsp;       | error_type & **value**()                                  | can modify contained error |
+| Observers    | constexpr error_type const & **error**() const            | can observe contained error |
+| &nbsp;       | error_type & **error**()                                  | can modify contained error |
+| deprecated   | constexpr error_type const & **value**() const            | can observe contained error |
+| deprecated   | error_type & **value**()                                  | can modify contained error |
 
 ### Algorithms for unexpected_type
 
@@ -271,7 +278,8 @@ You can use the R3 revision of P2505, which lacks `error_or`, and uses `remove_c
 | <&ensp;>&ensp;<=&ensp;>=      | constexpr bool operator ***op***(<br>&emsp;unexpected_type&lt;std::exception_ptr> const & x,<br>&emsp;unexpected_type&lt;std::exception_ptr> const & y ) |
 | Specialized algorithms        | &nbsp;   | 
 | Make unexpected from          | &nbsp;   | 
-| &emsp;Error                   | template&lt;typename E><br>[constexpr] auto **make_unexpected**( E && v) -><br>&emsp;unexpected_type< typename std::decay&lt;E>::type>| 
+| &emsp;Error                   | template&lt;typename E><br>[constexpr] auto **make_unexpected**(E && v) -><br>&emsp;unexpected_type< typename std::decay&lt;E>::type>| 
+| &emsp;Arguments (in-place)    | template&lt;typename E, typename... Args><br>[constexpr] auto **make_unexpected**(in_place_t, Args &&... args) -><br>&emsp;unexpected_type< typename std::decay&lt;E>::type>| 
 | Make unexpected from          | nsel_P0323R <= 3 | 
 | &emsp;Current exception       | [constexpr] auto **make_unexpected_from_current_exception**() -><br>&emsp;unexpected_type< std::exception_ptr>| 
 
@@ -396,6 +404,7 @@ unexpected_type<std::exception_ptr>: Allows to modify its value
 unexpected_type: Provides relational operators
 unexpected_type: Provides relational operators, std::exception_ptr specialization
 make_unexpected(): Allows to create an unexpected_type<E> from an E
+make_unexpected(): Allows to in-place create an unexpected_type<E> from an E
 unexpected: C++17 and later provide unexpected_type as unexpected
 bad_expected_access: Disallows default construction
 bad_expected_access: Allows construction from error_type

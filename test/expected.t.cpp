@@ -194,8 +194,8 @@ CASE( "unexpected_type: Allows to copy-construct from unexpected_type, default" 
 
     unexpected_type<int> b( a );
 
-    EXPECT( a.value() == 7 );
-    EXPECT( b.value() == 7 );
+    EXPECT( a.error() == 7 );
+    EXPECT( b.error() == 7 );
 }
 
 CASE( "unexpected_type: Allows to move-construct from unexpected_type, default" )
@@ -204,8 +204,8 @@ CASE( "unexpected_type: Allows to move-construct from unexpected_type, default" 
 
     unexpected_type<int> b( eastl::move( a ) );
 
-    EXPECT( a.value() == 7 );
-    EXPECT( b.value() == 7 );
+    EXPECT( a.error() == 7 );
+    EXPECT( b.error() == 7 );
 }
 
 CASE( "unexpected_type: Allows to in-place-construct" )
@@ -213,78 +213,94 @@ CASE( "unexpected_type: Allows to in-place-construct" )
     unexpected_type<Explicit> ue( eastl::in_place, 5 );
     unexpected_type<Implicit> ui( eastl::in_place, 7 );
 
-    EXPECT( ue.value() == Explicit{5} );
-    EXPECT( ui.value() == Implicit{7} );
+    EXPECT( ue.error() == Explicit{5} );
+    EXPECT( ui.error() == Implicit{7} );
 }
 
 CASE( "unexpected_type: Allows to in-place-construct from initializer_list" )
 {
     unexpected_type<InitList> u( in_place, { 7, 8, 9 }, 'a' );
 
-    EXPECT( u.value().vec[0]  ==  7 );
-    EXPECT( u.value().vec[1]  ==  8 );
-    EXPECT( u.value().vec[2]  ==  9 );
-    EXPECT( u.value().c       == 'a');
+    EXPECT( u.error().vec[0]  ==  7 );
+    EXPECT( u.error().vec[1]  ==  8 );
+    EXPECT( u.error().vec[2]  ==  9 );
+    EXPECT( u.error().c       == 'a');
 }
 
 CASE( "unexpected_type: Allows to copy-construct from error_type" )
 {
     unexpected_type<int> u{ 7 };
 
-    EXPECT( u.value() == 7 );
+    EXPECT( u.error() == 7 );
 }
 
 CASE( "unexpected_type: Allows to move-construct from error_type" )
 {
     unexpected_type<int> u{ eastl::move( 7 ) };
 
-    EXPECT( u.value() == 7 );
+    EXPECT( u.error() == 7 );
 }
 
 CASE( "unexpected_type: Allows to copy-construct from unexpected_type, explicit converting" )
 {
+#if !nsel_USES_STD_EXPECTED // TODO
     unexpected_type<int> a{ 7 };
 
     unexpected_type<Explicit> b{ a };
 
-    EXPECT( b.value() == Explicit{7} );
+    EXPECT( b.error() == Explicit{7} );
+#else
+    EXPECT( !!"no explicit converting copy-construct for std::unexpected (C++23)." "TODO" );
+#endif
 }
 
 CASE( "unexpected_type: Allows to copy-construct from unexpected_type, non-explicit converting" )
 {
+#if !nsel_USES_STD_EXPECTED // TODO
     unexpected_type<int> a{ 7 };
 
     unexpected_type<Implicit> b( a );
 
-    EXPECT( b.value() == Implicit{7} );
+    EXPECT( b.error() == Implicit{7} );
+#else
+    EXPECT( !!"no non-explicit converting copy-construct for std::unexpected (C++23)." "TODO" );
+#endif
 }
 
 CASE( "unexpected_type: Allows to move-construct from unexpected_type, explicit converting" )
 {
+#if !nsel_USES_STD_EXPECTED // TODO
     unexpected_type<int> a{ 7 };
 
     unexpected_type<Explicit> b{ eastl::move( a ) };
 
-    EXPECT( b.value() == Explicit{7} );
+    EXPECT( b.error() == Explicit{7} );
+#else
+    EXPECT( !!"no explicit converting move-construct for std::unexpected (C++23)." "TODO" );
+#endif
 }
 
 CASE( "unexpected_type: Allows to move-construct from unexpected_type, non-explicit converting" )
 {
+#if !nsel_USES_STD_EXPECTED // TODO
     unexpected_type<int> a{ 7 };
 
     unexpected_type<Implicit> b( eastl::move( a ) );
 
-    EXPECT( b.value() == Implicit{7} );
+    EXPECT( b.error() == Implicit{7} );
+#else
+    EXPECT( !!"no non-explicit converting move-construct for std::unexpected (C++23)." "TODO" );
+#endif
 }
 
 CASE( "unexpected_type: Allows to copy-assign from unexpected_type, default" )
 {
-    unexpected_type<int> a{ 7   };
+    unexpected_type<int> a{ 7 };
     unexpected_type<int> b{ 0 };
 
     b = a;
 
-    EXPECT( b.value() == 7 );
+    EXPECT( b.error() == 7 );
 }
 
 CASE( "unexpected_type: Allows to move-assign from unexpected_type, default" )
@@ -294,11 +310,12 @@ CASE( "unexpected_type: Allows to move-assign from unexpected_type, default" )
 
     b = eastl::move( a );
 
-    EXPECT( b.value() == 7 );
+    EXPECT( b.error() == 7 );
 }
 
 CASE( "unexpected_type: Allows to copy-assign from unexpected_type, converting" )
 {
+#if !nsel_USES_STD_EXPECTED
     unexpected_type<int> u{ 7 };
     unexpected_type<Explicit> ue{ 0 };
     unexpected_type<Implicit> ui{ 0 };
@@ -306,12 +323,16 @@ CASE( "unexpected_type: Allows to copy-assign from unexpected_type, converting" 
     ue = u;
     ui = u;
 
-    EXPECT( ue.value() == Explicit{7} );
-    EXPECT( ui.value() == Implicit{7} );
+    EXPECT( ue.error() == Explicit{7} );
+    EXPECT( ui.error() == Implicit{7} );
+#else
+    EXPECT( !!"no copy-assignment for std::unexpected (C++23)." );
+#endif
 }
 
 CASE( "unexpected_type: Allows to move-assign from unexpected, converting" )
 {
+#if !nsel_USES_STD_EXPECTED
     unexpected_type<int> u{ 7 };
     unexpected_type<int> v{ 7 };
     unexpected_type<Explicit> ue{ 0 };
@@ -320,8 +341,11 @@ CASE( "unexpected_type: Allows to move-assign from unexpected, converting" )
     ue = eastl::move( u );
     ui = eastl::move( v );
 
-    EXPECT( ue.value() == Explicit{7} );
-    EXPECT( ui.value() == Implicit{7} );
+    EXPECT( ue.error() == Explicit{7} );
+    EXPECT( ui.error() == Implicit{7} );
+#else
+    EXPECT( !!"no move-assignment for std::unexpected (C++23)." );
+#endif
 }
 
 CASE( "unexpected_type: Allows to observe its value via a l-value reference" )
@@ -329,8 +353,8 @@ CASE( "unexpected_type: Allows to observe its value via a l-value reference" )
     unexpected_type<int>  u{ 7 };
     unexpected_type<int> uc{ 7 };
 
-    EXPECT(  u.value() == 7 );
-    EXPECT( uc.value() == 7 );
+    EXPECT(  u.error() == 7 );
+    EXPECT( uc.error() == 7 );
 }
 
 CASE( "unexpected_type: Allows to observe its value via a r-value reference" )
@@ -338,17 +362,17 @@ CASE( "unexpected_type: Allows to observe its value via a r-value reference" )
     unexpected_type<int>  u{ 7 };
     unexpected_type<int> uc{ 7 };
 
-    EXPECT( eastl::move( u).value() == 7 );
-    EXPECT( eastl::move(uc).value() == 7 );
+    EXPECT( std::move( u).error() == 7 );
+    EXPECT( std::move(uc).error() == 7 );
 }
 
 CASE( "unexpected_type: Allows to modify its value via a l-value reference" )
 {
     unexpected_type<int> u{ 5 };
 
-    u.value() = 7;
+    u.error() = 7;
 
-    EXPECT( u.value() == 7 );
+    EXPECT( u.error() == 7 );
 }
 
 //CASE( "unexpected_type: Allows to modify its value via a r-value reference" )
@@ -356,9 +380,9 @@ CASE( "unexpected_type: Allows to modify its value via a l-value reference" )
 //    const auto v = 9;
 //    unexpected_type<int> u{ 7 };
 //
-//    eastl::move( u.value() ) = v;
+//    std::move( u.error() ) = v;
 //
-//    EXPECT( u.value() == v );
+//    EXPECT( u.error() == v );
 //}
 
 CASE( "unexpected_type: Allows to be swapped" )
@@ -368,8 +392,8 @@ CASE( "unexpected_type: Allows to be swapped" )
 
     a.swap( b );
 
-    EXPECT( a.value() == 7 );
-    EXPECT( b.value() == 5 );
+    EXPECT( a.error() == 7 );
+    EXPECT( b.error() == 5 );
 }
 
 //CASE( "unexpected_type: Allows reset via = {}" )
@@ -415,7 +439,7 @@ CASE( "unexpected_type<std::exception_ptr>: Allows to copy-construct from error_
 
     unexpected_type<std::exception_ptr> u{ ep };
 
-    EXPECT( u.value() == ep );
+    EXPECT( u.error() == ep );
 }
 
 CASE( "unexpected_type<std::exception_ptr>: Allows to move-construct from error_type" )
@@ -425,7 +449,7 @@ CASE( "unexpected_type<std::exception_ptr>: Allows to move-construct from error_
 
     unexpected_type<std::exception_ptr> u{ eastl::move( ep_move ) };
 
-    EXPECT( u.value() == ep_copy );
+    EXPECT( u.error() == ep_copy );
 }
 
 CASE( "unexpected_type<std::exception_ptr>: Allows to copy-construct from an exception" )
@@ -436,7 +460,7 @@ CASE( "unexpected_type<std::exception_ptr>: Allows to copy-construct from an exc
 
     try
     {
-         std::rethrow_exception( u.value() );
+         std::rethrow_exception( u.error() );
     }
     catch( std::exception const & e )
     {
@@ -449,7 +473,7 @@ CASE( "unexpected_type<std::exception_ptr>: Allows to observe its value" )
     const auto ep = make_ep();
     unexpected_type<std::exception_ptr> u{ ep };
 
-    EXPECT( u.value() == ep );
+    EXPECT( u.error() == ep );
 }
 
 CASE( "unexpected_type<std::exception_ptr>: Allows to modify its value" )
@@ -458,9 +482,9 @@ CASE( "unexpected_type<std::exception_ptr>: Allows to modify its value" )
     const auto ep2 = make_ep();
     unexpected_type<std::exception_ptr> u{ ep1 };
 
-    u.value() = ep2;
+    u.error() = ep2;
 
-    EXPECT( u.value() == ep2 );
+    EXPECT( u.error() == ep2 );
 }
 
 //CASE( "unexpected_type: Allows reset via = {}, std::exception_ptr specialization" )
@@ -542,7 +566,18 @@ CASE( "make_unexpected(): Allows to create an unexpected_type<E> from an E" )
     const auto error = 7;
     auto u = make_unexpected( error );
 
-    EXPECT( u.value() == error );
+    EXPECT( u.error() == error );
+}
+
+CASE( "make_unexpected(): Allows to in-place create an unexpected_type<E> from an E" )
+{
+    const auto a = 'a';
+    const auto b =  7;
+
+    auto u = make_unexpected< std::pair<char, int> >( in_place, a, b );
+
+    EXPECT( u.error().first  == a );
+    EXPECT( u.error().second == b );
 }
 
 CASE( "make_unexpected_from_current_exception(): Allows to create an unexpected_type<std::exception_ptr> from the current exception" "[.deprecated]" )
@@ -560,7 +595,7 @@ CASE( "make_unexpected_from_current_exception(): Allows to create an unexpected_
 
         try
         {
-            std::rethrow_exception( u.value() );
+            std::rethrow_exception( u.error() );
         }
         catch( std::exception const & e )
         {
@@ -979,7 +1014,7 @@ CASE( "expected: Allows to emplace value" )
 
 CASE( "expected: Allows to emplace value from initializer_list" )
 {
-    expected<InitList, char> e{ {}, 'x'};
+    expected<InitList, char> e{ in_place, std::initializer_list<int>{}, 'x'};
 
     auto ve = e.emplace( { 7, 8, 9 }, 'a' );
 
@@ -1192,18 +1227,26 @@ CASE( "expected: Allows to move its error" )
 
 CASE( "expected: Allows to observe its error as unexpected" )
 {
+#if !nsel_USES_STD_EXPECTED
     const auto v = 7;
     expected<char, Implicit> e{ unexpect, v };
 
-    EXPECT( e.get_unexpected().value() == v );
+    EXPECT( e.get_unexpected().error() == v );
+#else
+    EXPECT( !!"expected::get_unexpected() is not available (using C++23 std::expected)" );
+#endif
 }
 
 CASE( "expected: Allows to query if it contains an exception of a specific base type" )
 {
+#if !nsel_USES_STD_EXPECTED
     expected<int, std::out_of_range> e{ unexpect, std::out_of_range( "oor" ) };
 
     EXPECT(  e.has_exception< std::logic_error   >() );
     EXPECT( !e.has_exception< std::runtime_error >() );
+#else
+    EXPECT( !!"expected::has_exception() is not available (using C++23 std::expected)" );
+#endif
 }
 
 CASE( "expected: Allows to observe its value if available, or obtain a specified value otherwise" )
@@ -1633,18 +1676,26 @@ CASE( "expected<void>: Allows to move its error" )
 
 CASE( "expected<void>: Allows to observe its error as unexpected" )
 {
+#if !nsel_USES_STD_EXPECTED
     const auto value = 7;
     expected<void, int> e{ unexpect, value };
 
-    EXPECT( e.get_unexpected().value() == value );
+    EXPECT( e.get_unexpected().error() == value );
+#else
+    EXPECT( !!"expected::get_unexpected() is not available (using C++23 std::expected)" );
+#endif
 }
 
 CASE( "expected<void>: Allows to query if it contains an exception of a specific base type" )
 {
+#if !nsel_USES_STD_EXPECTED
     expected<void, std::out_of_range> e{ unexpect, std::out_of_range( "oor" ) };
 
     EXPECT(  e.has_exception< std::logic_error   >() );
     EXPECT( !e.has_exception< std::runtime_error >() );
+#else
+    EXPECT( !!"expected::has_exception() is not available (using C++23 std::expected)" );
+#endif
 }
 
 CASE( "expected<void>: Throws bad_expected_access on value access when disengaged" )
@@ -1933,10 +1984,14 @@ CASE( "swap: Allows expected to be swapped" )
 
 CASE( "eastl::hash: Allows to compute hash value for expected" )
 {
+#if !nsel_USES_STD_EXPECTED
     expected<int, char> a{ 7 };
     expected<int, char> b{ 7 };
 
-  //  EXPECT((eastl::hash< expected<int, char> >{}( a )) == (eastl::hash<expected<int, char> >{}( b )) );
+    EXPECT( (std::hash< expected<int, char> >{}( a )) == (std::hash< expected<int, char> >{}( b )) );
+#else
+    EXPECT( !!"std::hash<std::expected<>> is not available for std::unexpected (C++23)." );
+#endif
 }
 
 #if nsel_P0323R <= 3
@@ -2076,7 +2131,7 @@ public:
 
 eastl::expected< MyNonMoveableObject, Error > create_copyable()
 {
-    return MyNonMoveableObject{};
+    return nonstd::expected< MyNonMoveableObject, Error >{};
 }
 
 class MyNonCopyableObject
@@ -2175,7 +2230,7 @@ CASE( "issue-58" )
     EXPECT( !unexpected.has_value() );
 }
 
-#if nsel_P2505R >= 3
+#if !nsel_USES_STD_EXPECTED && nsel_P2505R >= 3
 CASE( "invoke" )
 {
     struct A {
@@ -2202,7 +2257,7 @@ CASE( "invoke" )
     EXPECT( eastl::expected_lite::detail::invoke(&A::get2, ref, 'a') == 12 );
     EXPECT( eastl::expected_lite::detail::invoke(&A::get2, cref, 'a') == 7 );
 }
-#endif // nsel_P2505R >= 3
+#endif // nsel_USES_STD_EXPECTED && nsel_P2505R >= 3
 
 // -----------------------------------------------------------------------
 //  using as optional

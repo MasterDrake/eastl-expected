@@ -21,6 +21,9 @@ void* __cdecl operator new[](size_t size, size_t alignment, size_t alignmentOffs
 #define expected_PRESENT( x ) \
     std::cout << #x << ": " << x << "\n"
 
+#define expected_DEFINED( x ) \
+    std::cout << #x << ": (defined)\n"
+
 #define expected_ABSENT( x ) \
     std::cout << #x << ": (undefined)\n"
 
@@ -46,7 +49,7 @@ CASE( "expected-lite version" "[.expected][.version]" )
     expected_PRESENT( expected_lite_VERSION );
 }
 
-CASE( "any configuration" "[.expected][.config]" )
+CASE( "expected-lite configuration" "[.expected][.config]" )
 {
     expected_PRESENT( nsel_CPLUSPLUS );
 }
