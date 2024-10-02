@@ -233,20 +233,6 @@ nsel_DISABLE_MSVC_WARNINGS( 26409 )
 
 namespace eastl { namespace expected_lite {
 
-// type traits C++17:
-namespace std17
-{
-using eastl::conjunction;
-using eastl::is_swappable;
-using eastl::is_nothrow_swappable;
-} // namespace std17
-
-// type traits C++20:
-namespace std20
-{
-using eastl::remove_cvref;
-} // namespace std20
-
 // forward declaration:
 
 template< typename T, typename E >
@@ -810,8 +796,8 @@ struct is_reference_wrapper<eastl::reference_wrapper< T > > : eastl::true_type {
 template< typename FnT, typename ClassT, typename ObjectT, typename... Args
     nsel_REQUIRES_T(
         eastl::is_function<FnT>::value
-        && (eastl::is_same< ClassT, typename std20::remove_cvref< ObjectT >::type >::value
-        || eastl::is_base_of< ClassT, typename std20::remove_cvref< ObjectT >::type >::value )
+        && (eastl::is_same< ClassT, typename eastl::remove_cvref< ObjectT >::type >::value
+        || eastl::is_base_of< ClassT, typename eastl::remove_cvref< ObjectT >::type >::value )
     )
 >
 EA_CONSTEXPR auto invoke_member_function_impl( FnT ClassT::* memfnptr, ObjectT && obj, Args && ... args )
@@ -824,7 +810,7 @@ EA_CONSTEXPR auto invoke_member_function_impl( FnT ClassT::* memfnptr, ObjectT &
 template< typename FnT, typename ClassT, typename ObjectT, typename... Args
     nsel_REQUIRES_T(
         eastl::is_function<FnT>::value
-        && is_reference_wrapper< typename std20::remove_cvref< ObjectT >::type >::value
+        && is_reference_wrapper< typename eastl::remove_cvref< ObjectT >::type >::value
     )
 >
 EA_CONSTEXPR auto invoke_member_function_impl( FnT ClassT::* memfnptr, ObjectT && obj, Args && ... args )
@@ -837,9 +823,9 @@ EA_CONSTEXPR auto invoke_member_function_impl( FnT ClassT::* memfnptr, ObjectT &
 template< typename FnT, typename ClassT, typename ObjectT, typename... Args
     nsel_REQUIRES_T(
         eastl::is_function<FnT>::value
-        && !eastl::is_same< ClassT, typename std20::remove_cvref< ObjectT >::type >::value
-        && !eastl::is_base_of< ClassT, typename std20::remove_cvref< ObjectT >::type >::value
-        && !is_reference_wrapper< typename std20::remove_cvref< ObjectT >::type >::value
+        && !eastl::is_same< ClassT, typename eastl::remove_cvref< ObjectT >::type >::value
+        && !eastl::is_base_of< ClassT, typename eastl::remove_cvref< ObjectT >::type >::value
+        && !is_reference_wrapper< typename eastl::remove_cvref< ObjectT >::type >::value
     )
 >
 EA_CONSTEXPR auto invoke_member_function_impl( FnT ClassT::* memfnptr, ObjectT && obj, Args && ... args )
@@ -851,8 +837,8 @@ EA_CONSTEXPR auto invoke_member_function_impl( FnT ClassT::* memfnptr, ObjectT &
 
 template< typename MemberT, typename ClassT, typename ObjectT
     nsel_REQUIRES_T(
-        eastl::is_same< ClassT, typename std20::remove_cvref< ObjectT >::type >::value
-        || eastl::is_base_of< ClassT, typename std20::remove_cvref< ObjectT >::type >::value
+        eastl::is_same< ClassT, typename eastl::remove_cvref< ObjectT >::type >::value
+        || eastl::is_base_of< ClassT, typename eastl::remove_cvref< ObjectT >::type >::value
     )
 >
 EA_CONSTEXPR auto invoke_member_object_impl( MemberT ClassT::* memobjptr, ObjectT && obj )
@@ -864,7 +850,7 @@ EA_CONSTEXPR auto invoke_member_object_impl( MemberT ClassT::* memobjptr, Object
 
 template< typename MemberT, typename ClassT, typename ObjectT
     nsel_REQUIRES_T(
-        is_reference_wrapper< typename std20::remove_cvref< ObjectT >::type >::value
+        is_reference_wrapper< typename eastl::remove_cvref< ObjectT >::type >::value
     )
 >
 EA_CONSTEXPR auto invoke_member_object_impl( MemberT ClassT::* memobjptr, ObjectT && obj )
@@ -876,9 +862,9 @@ EA_CONSTEXPR auto invoke_member_object_impl( MemberT ClassT::* memobjptr, Object
 
 template< typename MemberT, typename ClassT, typename ObjectT
     nsel_REQUIRES_T(
-        !eastl::is_same< ClassT, typename std20::remove_cvref< ObjectT >::type >::value
-        && !eastl::is_base_of< ClassT, typename std20::remove_cvref< ObjectT >::type >::value
-        && !is_reference_wrapper< typename std20::remove_cvref< ObjectT >::type >::value
+        !eastl::is_same< ClassT, typename eastl::remove_cvref< ObjectT >::type >::value
+        && !eastl::is_base_of< ClassT, typename eastl::remove_cvref< ObjectT >::type >::value
+        && !is_reference_wrapper< typename eastl::remove_cvref< ObjectT >::type >::value
     )
 >
 EA_CONSTEXPR auto invoke_member_object_impl( MemberT ClassT::* memobjptr, ObjectT && obj )
@@ -890,7 +876,7 @@ EA_CONSTEXPR auto invoke_member_object_impl( MemberT ClassT::* memobjptr, Object
 
 template< typename F, typename... Args
     nsel_REQUIRES_T(
-        eastl::is_member_function_pointer< typename std20::remove_cvref< F >::type >::value
+        eastl::is_member_function_pointer< typename eastl::remove_cvref< F >::type >::value
     )
 >
 EA_CONSTEXPR auto invoke( F && f, Args && ... args )
@@ -902,7 +888,7 @@ EA_CONSTEXPR auto invoke( F && f, Args && ... args )
 
 template< typename F, typename... Args
     nsel_REQUIRES_T(
-        eastl::is_member_object_pointer< typename std20::remove_cvref< F >::type >::value
+        eastl::is_member_object_pointer< typename eastl::remove_cvref< F >::type >::value
     )
 >
 EA_CONSTEXPR auto invoke( F && f, Args && ... args )
@@ -914,8 +900,8 @@ EA_CONSTEXPR auto invoke( F && f, Args && ... args )
 
 template< typename F, typename... Args
     nsel_REQUIRES_T(
-        !eastl::is_member_function_pointer< typename std20::remove_cvref< F >::type >::value
-        && !eastl::is_member_object_pointer< typename std20::remove_cvref< F >::type >::value
+        !eastl::is_member_function_pointer< typename eastl::remove_cvref< F >::type >::value
+        && !eastl::is_member_object_pointer< typename eastl::remove_cvref< F >::type >::value
     )
 >
 EA_CONSTEXPR auto invoke( F && f, Args && ... args )
@@ -926,7 +912,7 @@ EA_CONSTEXPR auto invoke( F && f, Args && ... args )
 }
 
 template< typename F, typename ... Args >
-using invoke_result_nocvref_t = typename std20::remove_cvref< decltype( invoke(eastl::declval< F >(), eastl::declval< Args >()... ) ) >::type;
+using invoke_result_nocvref_t = typename eastl::remove_cvref< decltype( invoke(eastl::declval< F >(), eastl::declval< Args >()... ) ) >::type;
 
 #if nsel_P2505R >= 5
 template< typename F, typename ... Args >
@@ -983,8 +969,8 @@ public:
     template< typename E2
         nsel_REQUIRES_T(
             eastl::is_constructible<E,E2>::value
-            && !eastl::is_same< typename std20::remove_cvref<E2>::type, eastl_lite_in_place_t(E2) >::value
-            && !eastl::is_same< typename std20::remove_cvref<E2>::type, unexpected_type >::value
+            && !eastl::is_same< typename eastl::remove_cvref<E2>::type, eastl_lite_in_place_t(E2) >::value
+            && !eastl::is_same< typename eastl::remove_cvref<E2>::type, unexpected_type >::value
         )
     >
     constexpr explicit unexpected_type( E2 && error )
@@ -1146,9 +1132,9 @@ public:
 
     template< typename U=E >
     nsel_REQUIRES_R( void,
-        std17::is_swappable<U>::value
+        eastl::is_swappable<U>::value
     )
-    swap( unexpected_type & other ) noexcept (std17::is_nothrow_swappable<U>::value)
+    swap( unexpected_type & other ) noexcept (eastl::::is_nothrow_swappable<U>::value)
     {
         using eastl::swap;
         swap( m_error, other.m_error );
@@ -1215,7 +1201,7 @@ constexpr bool operator>=( unexpected_type<E> const & x, unexpected_type<E> cons
 
 template< typename E
     nsel_REQUIRES_T(
-        std17::is_swappable<E>::value
+        eastl::is_swappable<E>::value
     )
 >
 void swap( unexpected_type<E> & x, unexpected_type<E> & y) noexcept ( noexcept ( x.swap(y) ) )
@@ -1400,7 +1386,7 @@ namespace detail {
 // "the type of the unexpected value. The type must not be an array type, a non-object type, a specialization of eastl::unexpected, or a cv-qualified type."
 template< typename T >
 struct valid_unexpected_type : eastl::integral_constant< bool,
-    eastl::is_same< T, typename std20::remove_cvref< T >::type >::value
+    eastl::is_same< T, typename eastl::remove_cvref< T >::type >::value
     && eastl::is_object< T >::value
     && !eastl::is_array< T >::value
 > {};
@@ -1559,9 +1545,9 @@ public:
     template< typename U = T
         nsel_REQUIRES_T(
             eastl::is_constructible<T,U&&>::value
-            && !eastl::is_same<typename std20::remove_cvref<U>::type, eastl_lite_in_place_t(U)>::value
-            && !eastl::is_same<        expected<T,E>     , typename std20::remove_cvref<U>::type>::value
-            && !eastl::is_same<eastl::unexpected_type<E>, typename std20::remove_cvref<U>::type>::value
+            && !eastl::is_same<typename eastl::remove_cvref<U>::type, eastl_lite_in_place_t(U)>::value
+            && !eastl::is_same<        expected<T,E>     , typename eastl::remove_cvref<U>::type>::value
+            && !eastl::is_same<eastl::unexpected_type<E>, typename eastl::remove_cvref<U>::type>::value
             && !eastl::is_convertible<U&&,T>::value /*=> explicit */
         )
     >
@@ -1578,9 +1564,9 @@ public:
     template< typename U = T
         nsel_REQUIRES_T(
             eastl::is_constructible<T,U&&>::value
-            && !eastl::is_same<typename std20::remove_cvref<U>::type, eastl_lite_in_place_t(U)>::value
-            && !eastl::is_same<        expected<T,E>     , typename std20::remove_cvref<U>::type>::value
-            && !eastl::is_same<eastl::unexpected_type<E>, typename std20::remove_cvref<U>::type>::value
+            && !eastl::is_same<typename eastl::remove_cvref<U>::type, eastl_lite_in_place_t(U)>::value
+            && !eastl::is_same<        expected<T,E>     , typename eastl::remove_cvref<U>::type>::value
+            && !eastl::is_same<eastl::unexpected_type<E>, typename eastl::remove_cvref<U>::type>::value
             && eastl::is_convertible<U&&,T>::value /*=> non-explicit */
         )
     >
@@ -1725,8 +1711,8 @@ public:
 
     template< typename U
         nsel_REQUIRES_T(
-            !eastl::is_same<expected<T,E>, typename std20::remove_cvref<U>::type>::value
-            && std17::conjunction<eastl::is_scalar<T>, eastl::is_same<T, eastl::decay<U>> >::value
+            !eastl::is_same<expected<T,E>, typename eastl::remove_cvref<U>::type>::value
+            && eastl::conjunction<eastl::is_scalar<T>, eastl::is_same<T, eastl::decay<U>> >::value
             && eastl::is_constructible<T ,U>::value
             && eastl::is_assignable<   T&,U>::value
             && eastl::is_nothrow_move_constructible<E>::value )
@@ -1789,14 +1775,14 @@ public:
 
     template< typename U=T, typename G=E >
     nsel_REQUIRES_R( void,
-        std17::is_swappable<   U>::value
-        && std17::is_swappable<G>::value
+        eastl::is_swappable<   U>::value
+        && eastl::is_swappable<G>::value
         && (eastl::is_move_constructible<U>::value || eastl::is_move_constructible<G>::value )
     )
     swap( expected & other ) noexcept
     (
-        eastl::is_nothrow_move_constructible<T>::value && std17::is_nothrow_swappable<T&>::value &&
-        eastl::is_nothrow_move_constructible<E>::value && std17::is_nothrow_swappable<E&>::value
+        eastl::is_nothrow_move_constructible<T>::value && eastl::::is_nothrow_swappable<T&>::value &&
+        eastl::is_nothrow_move_constructible<E>::value && eastl::::is_nothrow_swappable<E&>::value
     )
     {
         using eastl::swap;
@@ -2439,12 +2425,12 @@ public:
 
     template< typename G = E >
     nsel_REQUIRES_R( void,
-        std17::is_swappable<G>::value
+        eastl::is_swappable<G>::value
         && eastl::is_move_constructible<G>::value
     )
     swap( expected & other ) noexcept
     (
-        eastl::is_nothrow_move_constructible<E>::value && std17::is_nothrow_swappable<E&>::value
+        eastl::is_nothrow_move_constructible<E>::value && eastl::is_nothrow_swappable<E&>::value
     )
     {
         using eastl::swap;
@@ -3072,8 +3058,8 @@ template< typename T, typename E
     nsel_REQUIRES_T(
         (eastl::is_void<T>::value || eastl::is_move_constructible<T>::value )
         && eastl::is_move_constructible<E>::value
-        && std17::is_swappable<T>::value
-        && std17::is_swappable<E>::value )
+        && eastl::is_swappable<T>::value
+        && eastl::is_swappable<E>::value )
 >
 void swap( expected<T,E> & x, expected<T,E> & y ) noexcept ( noexcept ( x.swap(y) ) )
 {
