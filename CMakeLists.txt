@@ -53,9 +53,6 @@ option( EXPECTED_LITE_OPT_BUILD_TESTS    "Build and perform expected-lite tests"
 option( EXPECTED_LITE_OPT_BUILD_EXAMPLES "Build expected-lite examples" OFF )
 set(    EXPEXTED_P0323R  "99" STRING     "Specify proposal revision compatibility (99: latest)" )
 
-option( EXPECTED_LITE_OPT_SELECT_STD     "Select std::expected"    OFF )
-option( EXPECTED_LITE_OPT_SELECT_NONSTD  "Select nonstd::expected" OFF )
-
 # If requested, build and perform tests, build examples:
 
 if ( EXPECTED_LITE_OPT_BUILD_TESTS )

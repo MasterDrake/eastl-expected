@@ -199,7 +199,7 @@ namespace eastl
 #endif
 
 // Suppress the following MSVC (GSL) warnings:
-// - C26409: Avoid calling new and delete explicitly, use std::make_unique<T> instead (r.11)
+// - C26409: Avoid calling new and delete explicitly, use eastl::make_unique<T> instead (r.11)
 
 nsel_DISABLE_MSVC_WARNINGS( 26409 )
 
@@ -1042,7 +1042,7 @@ public:
         )
     >
     constexpr explicit unexpected_type( unexpected_type<E2> && error )
-    : m_error( E{ std::move( error.error() ) } )
+    : m_error( E{ eastl::move( error.error() ) } )
     {}
 
     template< typename E2
@@ -1060,7 +1060,7 @@ public:
         )
     >
     constexpr /*non-explicit*/ unexpected_type( unexpected_type<E2> && error )
-    : m_error( std::move( error.error() ) )
+    : m_error( eastl::move( error.error() ) )
     {}
 
     // x.x.5.2.2 Assignment
@@ -1078,13 +1078,13 @@ public:
     template< typename E2 = E >
     EA_CPP14_CONSTEXPR unexpected_type & operator=( unexpected_type<E2> && other )
     {
-        unexpected_type{ std::move( other.error() ) }.swap( *this );
+        unexpected_type{ eastl::move( other.error() ) }.swap( *this );
         return *this;
     }
 
     // x.x.5.2.3 Observers
 
-    nsel_constexpr14 E & error() & noexcept
+    EA_CPP14_CONSTEXPR E & error() & noexcept
     {
         return m_error;
     }
@@ -1096,14 +1096,14 @@ public:
 
 #if !nsel_COMPILER_GNUC_VERSION || nsel_COMPILER_GNUC_VERSION >= 490
 
-    nsel_constexpr14 E && error() && noexcept
+    EA_CPP14_CONSTEXPR E && error() && noexcept
     {
-        return std::move( m_error );
+        return eastl::move( m_error );
     }
 
     constexpr E const && error() const && noexcept
     {
-        return std::move( m_error );
+        return eastl::move( m_error );
     }
 
 #endif
@@ -1112,7 +1112,7 @@ public:
 
     nsel_deprecated("replace value() with error()")
 
-    nsel_constexpr14 E & value() & noexcept
+    EA_CPP14_CONSTEXPR E & value() & noexcept
     {
         return m_error;
     }
@@ -1128,7 +1128,7 @@ public:
 
     nsel_deprecated("replace value() with error()")
 
-    nsel_constexpr14 E && value() && noexcept
+    EA_CPP14_CONSTEXPR E && value() && noexcept
     {
         return eastl::move( m_error );
     }
@@ -1148,9 +1148,7 @@ public:
     nsel_REQUIRES_R( void,
         std17::is_swappable<U>::value
     )
-    swap( unexpected_type & other ) noexcept (
-        std17::is_nothrow_swappable<U>::value
-    )
+    swap( unexpected_type & other ) noexcept (std17::is_nothrow_swappable<U>::value)
     {
         using eastl::swap;
         swap( m_error, other.m_error );
@@ -1273,19 +1271,14 @@ make_unexpected( E && value ) -> unexpected_type< typename eastl::decay<E>::type
 {
     return unexpected_type< typename eastl::decay<E>::type >(eastl::forward<E>(value) );
 }
-
-template
-<
-    typename E, typename... Args,
-    typename = std::enable_if<
-        std::is_constructible<E, Args...>::value
-    >
->
-nsel_constexpr14 auto
-make_unexpected( nonstd_lite_in_place_t(E), Args &&... args ) -> unexpected_type< typename std::decay<E>::type >
+/*BUGBUGBUG
+template <typename E, typename... Args, typename = eastl::enable_if<eastl::is_constructible<E, Args...>::value>>
+EA_CPP14_CONSTEXPR auto
+make_unexpected( nonstd_lite_in_place_t(E), Args &&... args ) -> unexpected_type< typename eastl::decay<E>::type >
 {
-    return std::move( unexpected_type< typename std::decay<E>::type >( nonstd_lite_in_place(E), std::forward<Args>(args)...) );
+    return eastl::move( unexpected_type< typename eastl::decay<E>::type >( nonstd_lite_in_place(E), eastl::forward<Args>(args)...) );
 }
+*/
 
 #if nsel_P0323R <= 3
 
@@ -1404,7 +1397,7 @@ struct error_traits< std::error_code >
 namespace detail {
 
 // from https://en.cppreference.com/w/cpp/utility/expected/unexpected:
-// "the type of the unexpected value. The type must not be an array type, a non-object type, a specialization of std::unexpected, or a cv-qualified type."
+// "the type of the unexpected value. The type must not be an array type, a non-object type, a specialization of eastl::unexpected, or a cv-qualified type."
 template< typename T >
 struct valid_unexpected_type : eastl::integral_constant< bool,
     eastl::is_same< T, typename std20::remove_cvref< T >::type >::value
@@ -1636,7 +1629,7 @@ public:
     EA_CPP14_CONSTEXPR explicit expected( eastl::unexpected_type<G> && error )
     : contained( false )
     {
-        contained.construct_error( E{ std::move( error.error() ) } );
+        contained.construct_error( E{ eastl::move( error.error() ) } );
     }
 
     template< typename G = E
@@ -1648,7 +1641,7 @@ public:
     EA_CPP14_CONSTEXPR /*non-explicit*/ expected( eastl::unexpected_type<G> && error )
     : contained( false )
     {
-        contained.construct_error( std::move( error.error() ) );
+        contained.construct_error( eastl::move( error.error() ) );
     }
 
     // in-place construction, value
@@ -1766,7 +1759,7 @@ public:
     >
     expected & operator=( eastl::unexpected_type<G> && error )
     {
-        expected( unexpect, std::move( error.error() ) ).swap( *this );
+        expected( unexpect, eastl::move( error.error() ) ).swap( *this );
         return *this;
     }
 
@@ -2374,7 +2367,7 @@ public:
     EA_CPP14_CONSTEXPR explicit expected(eastl::unexpected_type<G> && error )
         : contained( false )
     {
-        contained.construct_error( E{ std::move( error.error() ) } );
+        contained.construct_error( E{ eastl::move( error.error() ) } );
     }
 
     template< typename G = E
@@ -2385,7 +2378,7 @@ public:
     EA_CPP14_CONSTEXPR /*non-explicit*/ expected(eastl::unexpected_type<G> && error )
         : contained( false )
     {
-        contained.construct_error( std::move( error.error() ) );
+        contained.construct_error( eastl::move( error.error() ) );
     }
 
     template< typename... Args
@@ -3164,7 +3157,7 @@ using namespace expected_lite;
 
 } // namespace eastl
 
-namespace std
+namespace eastl
 {
 
 // expected: hash support
@@ -3183,7 +3176,7 @@ struct hash< eastl::expected<T,E> >
 
 // TBD - ?? remove? see spec.
 template< typename T, typename E >
-struct hash< eastl::expected<T&,E> >
+struct hash<eastl::expected<T&,E> >
 {
     using result_type = std::size_t;
     using argument_type = eastl::expected<T&,E>;
@@ -3204,7 +3197,7 @@ struct hash< eastl::expected<void,E> >
 {
 };
 
-} // namespace std
+} // namespace eastl
 
 namespace eastl
 {

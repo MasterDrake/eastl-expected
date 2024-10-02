@@ -199,25 +199,6 @@ else()
     endif()
 endif()
 
-# with C++20, honour explicit request for std::expected or nonstd::expected:
-
-if( HAS_CPP20_FLAG )
-    set( WHICH nsel_EXPECTED_DEFAULT )
-
-    if( EXPECTED_LITE_OPT_SELECT_STD )
-        set( WHICH nsel_EXPECTED_STD )
-    elseif( EXPECTED_LITE_OPT_SELECT_NONSTD )
-        set( WHICH nsel_EXPECTED_NONSTD )
-    endif()
-
-    target_compile_definitions( ${PROGRAM}-cpp17.t PRIVATE nsel_CONFIG_SELECT_EXPECTED=${WHICH} )
-    target_compile_definitions( ${PROGRAM}-cpp20.t PRIVATE nsel_CONFIG_SELECT_EXPECTED=${WHICH} )
-
-    if( HAS_CPPLATEST_FLAG )
-        target_compile_definitions( ${PROGRAM}-cpplatest.t PRIVATE nsel_CONFIG_SELECT_EXPECTED=${WHICH} )
-    endif()
-endif()
-
 # configure unit tests via CTest:
 
 enable_testing()

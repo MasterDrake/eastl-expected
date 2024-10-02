@@ -263,7 +263,7 @@ CASE( "unexpected_type: Allows to copy-construct from unexpected_type, non-expli
 
     EXPECT( b.error() == Implicit{7} );
 #else
-    EXPECT( !!"no non-explicit converting copy-construct for std::unexpected (C++23)." "TODO" );
+    EXPECT( !!"no non-explicit converting copy-construct for eastl::unexpected (C++23)." "TODO" );
 #endif
 }
 
@@ -276,7 +276,7 @@ CASE( "unexpected_type: Allows to move-construct from unexpected_type, explicit 
 
     EXPECT( b.error() == Explicit{7} );
 #else
-    EXPECT( !!"no explicit converting move-construct for std::unexpected (C++23)." "TODO" );
+    EXPECT( !!"no explicit converting move-construct for eastl::unexpected (C++23)." "TODO" );
 #endif
 }
 
@@ -289,7 +289,7 @@ CASE( "unexpected_type: Allows to move-construct from unexpected_type, non-expli
 
     EXPECT( b.error() == Implicit{7} );
 #else
-    EXPECT( !!"no non-explicit converting move-construct for std::unexpected (C++23)." "TODO" );
+    EXPECT( !!"no non-explicit converting move-construct for eastl::unexpected (C++23)." "TODO" );
 #endif
 }
 
@@ -326,7 +326,7 @@ CASE( "unexpected_type: Allows to copy-assign from unexpected_type, converting" 
     EXPECT( ue.error() == Explicit{7} );
     EXPECT( ui.error() == Implicit{7} );
 #else
-    EXPECT( !!"no copy-assignment for std::unexpected (C++23)." );
+    EXPECT( !!"no copy-assignment for eastl::unexpected (C++23)." );
 #endif
 }
 
@@ -344,7 +344,7 @@ CASE( "unexpected_type: Allows to move-assign from unexpected, converting" )
     EXPECT( ue.error() == Explicit{7} );
     EXPECT( ui.error() == Implicit{7} );
 #else
-    EXPECT( !!"no move-assignment for std::unexpected (C++23)." );
+    EXPECT( !!"no move-assignment for eastl::unexpected (C++23)." );
 #endif
 }
 
@@ -362,8 +362,8 @@ CASE( "unexpected_type: Allows to observe its value via a r-value reference" )
     unexpected_type<int>  u{ 7 };
     unexpected_type<int> uc{ 7 };
 
-    EXPECT( std::move( u).error() == 7 );
-    EXPECT( std::move(uc).error() == 7 );
+    EXPECT( eastl::move( u).error() == 7 );
+    EXPECT( eastl::move(uc).error() == 7 );
 }
 
 CASE( "unexpected_type: Allows to modify its value via a l-value reference" )
@@ -380,7 +380,7 @@ CASE( "unexpected_type: Allows to modify its value via a l-value reference" )
 //    const auto v = 9;
 //    unexpected_type<int> u{ 7 };
 //
-//    std::move( u.error() ) = v;
+//    eastl::move( u.error() ) = v;
 //
 //    EXPECT( u.error() == v );
 //}
@@ -568,18 +568,18 @@ CASE( "make_unexpected(): Allows to create an unexpected_type<E> from an E" )
 
     EXPECT( u.error() == error );
 }
-
+/*BUGBUGBUG
 CASE( "make_unexpected(): Allows to in-place create an unexpected_type<E> from an E" )
 {
     const auto a = 'a';
     const auto b =  7;
 
-    auto u = make_unexpected< std::pair<char, int> >( in_place, a, b );
+    auto u = make_unexpected< eastl::pair<char, int> >( in_place, a, b );
 
     EXPECT( u.error().first  == a );
     EXPECT( u.error().second == b );
 }
-
+*/
 CASE( "make_unexpected_from_current_exception(): Allows to create an unexpected_type<std::exception_ptr> from the current exception" "[.deprecated]" )
 {
 #if nsel_P0323R <= 2
@@ -1233,7 +1233,7 @@ CASE( "expected: Allows to observe its error as unexpected" )
 
     EXPECT( e.get_unexpected().error() == v );
 #else
-    EXPECT( !!"expected::get_unexpected() is not available (using C++23 std::expected)" );
+    EXPECT( !!"expected::get_unexpected() is not available (using C++23 eastl::expected)" );
 #endif
 }
 
@@ -1245,7 +1245,7 @@ CASE( "expected: Allows to query if it contains an exception of a specific base 
     EXPECT(  e.has_exception< std::logic_error   >() );
     EXPECT( !e.has_exception< std::runtime_error >() );
 #else
-    EXPECT( !!"expected::has_exception() is not available (using C++23 std::expected)" );
+    EXPECT( !!"expected::has_exception() is not available (using C++23 eastl::expected)" );
 #endif
 }
 
@@ -1682,7 +1682,7 @@ CASE( "expected<void>: Allows to observe its error as unexpected" )
 
     EXPECT( e.get_unexpected().error() == value );
 #else
-    EXPECT( !!"expected::get_unexpected() is not available (using C++23 std::expected)" );
+    EXPECT( !!"expected::get_unexpected() is not available (using C++23 eastl::expected)" );
 #endif
 }
 
@@ -1694,7 +1694,7 @@ CASE( "expected<void>: Allows to query if it contains an exception of a specific
     EXPECT(  e.has_exception< std::logic_error   >() );
     EXPECT( !e.has_exception< std::runtime_error >() );
 #else
-    EXPECT( !!"expected::has_exception() is not available (using C++23 std::expected)" );
+    EXPECT( !!"expected::has_exception() is not available (using C++23 eastl::expected)" );
 #endif
 }
 
@@ -1988,9 +1988,9 @@ CASE( "eastl::hash: Allows to compute hash value for expected" )
     expected<int, char> a{ 7 };
     expected<int, char> b{ 7 };
 
-    EXPECT( (std::hash< expected<int, char> >{}( a )) == (std::hash< expected<int, char> >{}( b )) );
+    EXPECT( (eastl::hash< expected<int, char> >{}( a )) == (eastl::hash< expected<int, char> >{}( b )) );
 #else
-    EXPECT( !!"std::hash<std::expected<>> is not available for std::unexpected (C++23)." );
+    EXPECT( !!"eastl::hash<eastl::expected<>> is not available for eastl::unexpected (C++23)." );
 #endif
 }
 
@@ -2131,7 +2131,7 @@ public:
 
 eastl::expected< MyNonMoveableObject, Error > create_copyable()
 {
-    return nonstd::expected< MyNonMoveableObject, Error >{};
+    return eastl::expected< MyNonMoveableObject, Error >{};
 }
 
 class MyNonCopyableObject
